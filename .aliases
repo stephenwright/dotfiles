@@ -1,0 +1,8 @@
+
+# List direcory contents
+alias ls='ls --color=auto'
+alias l='ls -lh'
+alias la='ls -a'
+alias ld='ls -d */'
+
+alias tmux='tmux -2'
