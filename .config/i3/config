@@ -167,7 +167,7 @@ bar {
   }
 }
 
-set $Locker i3lock && sleep 1
+set $Locker i3lock -c 222222 -e -i /home/stephen/.config/i3/lock-firewatch.png && sleep 1
 
 set $mode_system System (l) lock, (e) exit, (Shift+s) shutdown
 mode "$mode_system" {
@@ -181,6 +181,7 @@ mode "$mode_system" {
 }
 
 bindsym $mod+Pause mode "$mode_system"
+bindsym $mod+q exec --no-startup-id $Locker, mode "default"
 
 exec --no-startup-id nitrogen --restore
 exec --no-startup-id compton -b
