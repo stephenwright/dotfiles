@@ -1,6 +1,7 @@
 
 # set a fancy prompt
-PS1="$(print '%{\e[0;32m%}%n%{\e[0m%}')@$(print '%{\e[0;33m%}%m%{\e[0m%}')%20<..<:$(print '%{\e[1;36m%}%~%{\e[0m%}')% $ "
+#PS1="$(print '%{\e[0;32m%}%n%{\e[0m%}')@$(print '%{\e[0;33m%}%m%{\e[0m%}')%20<..<:$(print '%{\e[1;36m%}%~%{\e[0m%}')% $ "
+PS1="%21<..<:$(print '%{\e[1;36m%}%~%{\e[0m%}')% $ "
 
 # include completion options
 source ~/.zsh/completion
@@ -32,13 +33,13 @@ ZSH_THEME="gentoo"
 
 # convenience function for find
 f() {
-  echo "find . -iname \"*$1*\""
-  find . -iname "*$1*"
+    echo "find . -iname \"*$1*\""
+    find . -iname "*$1*"
 }
 
 # add ~/bin to the path if it exists
 if [ -d ~/bin ] ; then
-  PATH=~/bin:"${PATH}"
+    PATH=~/bin:"${PATH}"
 fi
 
 bindkey -e
@@ -50,7 +51,6 @@ bindkey "\e[6~" end-of-history # PageDown
 bindkey "\e[2~" quoted-insert # Ins
 bindkey "\e[3~" delete-char # Del
 
-if [ -f ~/.profile ] ; then
-  source ~/.profile
-fi
+source ~/.profile
 
+export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
