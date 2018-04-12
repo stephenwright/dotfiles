@@ -1,3 +1,7 @@
+# make sure the destination exists
+mkdir -p ~/dotfiles/.config
+
+# home directory dotfiles
 cd ~ 
 rsync -av \
   .aliases \
@@ -8,6 +12,7 @@ rsync -av \
   .Xresources \
   dotfiles
 
+# config folder
 cd ~/.config
 rsync -av \
   i3 \
