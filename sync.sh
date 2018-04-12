@@ -10,7 +10,7 @@ rsync -av \
   .vimrc \
   .zshrc \
   .Xresources \
-  dotfiles
+  ~/dotfiles
 
 # config folder
 cd ~/.config
