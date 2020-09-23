@@ -1,8 +1,15 @@
-
-# List direcory contents
+# ls
 alias ls='ls --color=auto'
 alias l='ls -lh'
 alias la='ls -a'
 alias ld='ls -d */'
 
+# tmux
 alias tmux='tmux -2'
+
+# docker
+alias drun='docker-compose run --rm'
+
+# git
+alias gg='git log --oneline --graph'
+

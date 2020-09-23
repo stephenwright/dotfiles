@@ -35,5 +35,5 @@ map <C-t>     :tabnew<CR>
 map <C-w>     :q<CR>
 
 " Load pathogen.vim plugin
-call pathogen#infect()
+"call pathogen#infect()
 

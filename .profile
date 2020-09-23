@@ -1,4 +1,28 @@
+# helper to append to $PATH without creating duplicates
+pathmunge () {
+  if ! echo $PATH | /bin/egrep -q "(^|:)$1($|:)" ; then
+    if [ "$2" = "after" ] ; then
+      PATH=$PATH:$1
+    else
+      PATH=$1:$PATH
+    fi
+  fi
+}
 
-export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+# convenience function for find
+f() {
+    echo "find . -iname \"*$1*\""
+    find . -iname "*$1*"
+}
 
-[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
+export QT_QPA_PLATFORMTHEME="qt5ct"
+export EDITOR=/usr/bin/vim
+
+# add ~/bin to path if it's present
+[ -d "$HOME/bin" ] && pathmunge "$HOME/bin"
+
+# aliases
+source ~/.aliases
+
+# cleanup
+unset -f pathmunge

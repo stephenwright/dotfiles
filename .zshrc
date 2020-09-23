@@ -1,56 +1,75 @@
+# options
+setopt correct                                                  # Auto correct mistakes
+setopt extendedglob                                             # Extended globbing. Allows using regular expressions with *
+setopt nocaseglob                                               # Case insensitive globbing
+setopt rcexpandparam                                            # Array expension with parameters
+setopt nocheckjobs                                              # Don't warn about running processes when exiting
+setopt numericglobsort                                          # Sort filenames numerically when it makes sense
+setopt nobeep                                                   # No beep
+setopt appendhistory                                            # Immediately append history instead of overwriting
+setopt histignorealldups                                        # If a new command is a duplicate, remove the older one
+setopt sharehistory
+setopt histnostore
+setopt histsavenodups
+setopt histverify
+setopt autocd                                                   # if only directory path is entered, cd there.
 
-# set a fancy prompt
-#PS1="$(print '%{\e[0;32m%}%n%{\e[0m%}')@$(print '%{\e[0;33m%}%m%{\e[0m%}')%20<..<:$(print '%{\e[1;36m%}%~%{\e[0m%}')% $ "
+# prompt
 PS1="%21<..<:$(print '%{\e[1;36m%}%~%{\e[0m%}')% $ "
 
-# include completion options
-source ~/.zsh/completion
+# completion
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'       # Case insensitive tab completion
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"         # Colored completion (different colors for dirs/files/etc)
+zstyle ':completion:*' rehash true                              # automatically find new executables in path 
+# speed up completions
+zstyle ':completion:*' accept-exact '*(N)'
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path ~/.zsh/cache
 
-autoload -Uz compinit
-compinit
-
-# set history buffer
+# history
 HISTFILE=~/.zsh/histfile
-HISTSIZE=SAVEHIST=1000
-setopt APPEND_HISTORY
-setopt INC_APPEND_HISTORY
-setopt SHARE_HISTORY
-setopt HIST_IGNORE_ALL_DUPS
-setopt HIST_IGNORE_DUPS
-setopt HIST_IGNORE_SPACE
-setopt HIST_NO_STORE
-setopt HIST_SAVE_NO_DUPS
-setopt HIST_VERIFY
+HISTSIZE=1000
+SAVEHIST=500
 
-# set aliases
-source ~/.aliases
+WORDCHARS=${WORDCHARS//\/[&.;]}                                 # Don't consider certain characters part of the word
 
-# disable zsh's auto-correct feature
-unsetopt correct_all
-
-# if using oh-my-zsh, set the theme to gentoo
-ZSH_THEME="gentoo"
-
-# convenience function for find
-f() {
-    echo "find . -iname \"*$1*\""
-    find . -iname "*$1*"
-}
-
-# add ~/bin to the path if it exists
-if [ -d ~/bin ] ; then
-    PATH=~/bin:"${PATH}"
-fi
-
+# key bindins
 bindkey -e
+bindkey "\e[1~" beginning-of-line                               # Home
+bindkey "\e[4~" end-of-line                                     # End
+bindkey "\e[5~" beginning-of-history                            # PageUp
+bindkey "\e[6~" end-of-history                                  # PageDown
+bindkey "\e[2~" quoted-insert                                   # Ins
+bindkey "\e[3~" delete-char                                     # Del
 
-bindkey "\e[1~" beginning-of-line # Home
-bindkey "\e[4~" end-of-line # End
-bindkey "\e[5~" beginning-of-history # PageUp
-bindkey "\e[6~" end-of-history # PageDown
-bindkey "\e[2~" quoted-insert # Ins
-bindkey "\e[3~" delete-char # Del
+# Navigate words with ctrl+arrow keys
+bindkey '^[Oc' forward-word                                     #
+bindkey '^[Od' backward-word                                    #
+bindkey '^[[1;5D' backward-word                                 #
+bindkey '^[[1;5C' forward-word                                  #
+bindkey '^H' backward-kill-word                                 # delete previous word with ctrl+backspace
+
+# theming
+autoload -U compinit colors zcalc
+compinit -d
+colors
+
+# colour man pages
+export LESS_TERMCAP_mb=$'\E[01;32m'
+export LESS_TERMCAP_md=$'\E[01;32m'
+export LESS_TERMCAP_me=$'\E[0m'
+export LESS_TERMCAP_se=$'\E[0m'
+export LESS_TERMCAP_so=$'\E[01;47;34m'
+export LESS_TERMCAP_ue=$'\E[0m'
+export LESS_TERMCAP_us=$'\E[01;36m'
+export LESS=-r
+
+# fzf
+source /usr/share/fzf/completion.zsh
+source /usr/share/fzf/key-bindings.zsh
 
 source ~/.profile
 
-export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+# binsentry
+source /srv/binsentry/devroot/.binsentry.profile
+
