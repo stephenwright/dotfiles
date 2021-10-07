@@ -15,7 +15,9 @@ setopt histverify
 setopt autocd                                                   # if only directory path is entered, cd there.
 
 # prompt
-PS1="%21<..<:$(print '%{\e[1;36m%}%~%{\e[0m%}')% $ "
+#PS1="%n@%m%21<..<:$(print '%{\e[1;36m%}%~%{\e[0m%}')%<<%# "
+PS1="%F{green}%n%f@%m%F{cyan}%21<..<%~%<<%f%# "
+
 
 # completion
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'       # Case insensitive tab completion
@@ -68,8 +70,8 @@ export LESS=-r
 source /usr/share/fzf/completion.zsh
 source /usr/share/fzf/key-bindings.zsh
 
-source ~/.profile
+[ -f ~/.profile ] && source ~/.profile
 
 # binsentry
-source /srv/binsentry/devroot/.binsentry.profile
+[ -f /srv/binsentry/devroot/.binsentry.profile ] && source /srv/binsentry/devroot/.binsentry.profile
 
