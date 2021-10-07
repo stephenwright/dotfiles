@@ -24,7 +24,8 @@ bindsym $mod+Shift+s exec maim -s ~/Pictures/screenshots/$(date +%F-%T).png
 
 # This font is widely installed, provides lots of unicode glyphs, right-to-left
 # text rendering and scalability on retina/hidpi displays (thanks to pango).
-font pango:DejaVu Sans Mono 8
+#font pango:DejaVu Sans Mono 8
+font pango:"Source Code Pro" Mono 10
 
 # Before i3 v4.8, we used to recommend this one as the default:
 # font -misc-fixed-medium-r-normal--13-120-75-75-C-70-iso10646-1
@@ -173,7 +174,7 @@ set $mode_system System (l) lock, (e) exit, (Shift+s) shutdown
 mode "$mode_system" {
   bindsym l exec --no-startup-id $Locker, mode "default"
   bindsym e exec --no-startup-id i3-msg exit, mode "default"
-  bindsym Shift+s exec --no-startup-id systemctl poweroff -i, mode "default"  
+  bindsym Shift+s exec --no-startup-id systemctl poweroff -i, mode "default"
 
   # back to normal: Enter or Escape
   bindsym Return mode "default"

@@ -15,8 +15,7 @@ setopt histverify
 setopt autocd                                                   # if only directory path is entered, cd there.
 
 # prompt
-#PS1="%n@%m%21<..<:$(print '%{\e[1;36m%}%~%{\e[0m%}')%<<%# "
-PS1="%F{green}%n%f@%m%F{cyan}%21<..<%~%<<%f%# "
+PS1="%(#.%F{red}.%F{green})%n%f@%m%F{cyan}%21<..<%~%<<%f%# "
 
 
 # completion
