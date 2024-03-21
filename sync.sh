@@ -19,5 +19,6 @@ rsync -av \
   i3status \
   nitrogen \
   polybar \
+  nvim \
   ~/dotfiles/.config
 
