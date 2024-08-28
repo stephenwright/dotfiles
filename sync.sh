@@ -7,7 +7,7 @@ rsync -av \
   .aliases \
   .profile \
   .tmux.conf \
-  .vimrc \
+  .vim \
   .zshrc \
   .Xresources \
   ~/dotfiles
@@ -15,6 +15,7 @@ rsync -av \
 # config folder
 cd ~/.config
 rsync -av \
+  alacritty \
   i3 \
   i3status \
   nitrogen \
