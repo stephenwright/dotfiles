@@ -19,6 +19,7 @@ rsync -av \
   hypr \
   i3 \
   i3status \
+  mako \
   nitrogen \
   nvim \
   polybar \

@@ -1,0 +1,45 @@
+# Take a look at the mako manpage with the command:
+#   man 5 mako
+# To view all configuration options.
+
+## global options
+sort=-time
+
+## binding options
+# on-button-left=invoke-default-action
+
+## style options
+format=%a\n<b>%s</b>\n%b
+font=Source Code Pro
+layer=overlay
+anchor=top-right
+width=400
+# height=100
+margin=10
+padding=10,10,10,10
+text-color=#ffffff
+background-color=#2f4256
+border-size=3
+border-color=#7abeff
+border-radius=0
+# icons=1
+# max-icon-size=64
+# default-timeout=0
+# ignore-timeout=0
+# output=DP-2
+
+[urgency=normal]
+border-color=#7abeff
+
+[urgency=high]
+border-color=#bf616a
+default-timeout=0
+
+[app-name=discord]
+border-color=#7289da
+
+[summary~="log-.*"]
+border-color=#a3be8c
+
+[app-name=lightcord summary~="(.*(^| )orz|ORZ|sto|STO|otl|OTL( |$).*)"]
+invisible=1
