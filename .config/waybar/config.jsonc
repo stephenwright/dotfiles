@@ -1,0 +1,82 @@
+{
+    "layer": "top",
+
+    "modules-left": [
+        "hyprland/workspaces",
+        "hyprland/window"
+    ],
+
+    "modules-center": [
+        "clock"
+    ],
+
+    "modules-right": [
+        "tray",
+        "cpu",
+        "memory",
+        "battery",
+        "network",
+        "pulseaudio"
+    ],
+
+    "wlr/taskbar": {
+        "sort-by-app-id": true,
+        "on-click": "activate"
+    },
+
+    "hyprland/workspaces": {
+        "on-click": "activate"
+    },
+
+    "hyprland/window": {
+        "max-length": 80,
+        "tooltip": true
+    },
+
+    "tray": {
+        "spacing": 10
+    },
+
+    "clock": {
+        "format": "{:%a %d, %I:%M %p}",
+        "tooltip": false
+    },
+
+    "cpu": {
+        "format": "cpu {usage}%",
+        "interval": 2,
+        "states": {
+            "critical": 90
+        }
+    },
+
+    "memory": {
+        "format": "mem {percentage}%",
+        "interval": 2,
+        "states": {
+            "critical": 80
+        }
+    },
+
+    "battery": {
+        "format": "bat {capacity}%",
+        "interval": 5,
+        "states": {
+            "warning": 20,
+            "critical": 10
+        },
+        "tooltip": false
+    },
+
+    "network": {  
+        "format-wifi": "w {essid} ({signalStrength}%)",
+        "format-ethernet": "e {ifname}",
+        "format-disconnected": "Disconnected"
+    },
+
+    "pulseaudio": {
+        "scroll-step": 5,
+        "format": "vol {volume}",
+        "format-muted": "muted"
+    }
+}

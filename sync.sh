@@ -16,10 +16,13 @@ rsync -av \
 cd ~/.config
 rsync -av \
   alacritty \
+  hypr \
   i3 \
   i3status \
   nitrogen \
-  polybar \
   nvim \
+  polybar \
+  waybar \
+  wofi \
   ~/dotfiles/.config
 

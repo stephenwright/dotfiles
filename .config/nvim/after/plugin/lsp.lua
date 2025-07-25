@@ -9,7 +9,7 @@ end)
 
 lsp.setup_servers({
   'eslint',
-  'tsserver',
+  'ts_ls',
   'html',
   'cssls',
 })
@@ -26,7 +26,7 @@ require('lspconfig').lua_ls.setup({
 
 require('cmp').setup({
   sources = {
-    { name = 'copilot' },
+    -- { name = 'copilot' },
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
   },
@@ -36,7 +36,7 @@ require('mason').setup({})
 require('mason-lspconfig').setup({
   -- Replace the language servers listed here
   -- with the ones you want to install
-  ensure_installed = {'tsserver', 'eslint', 'html', 'cssls'},
+  ensure_installed = {'ts_ls', 'lua_ls', 'eslint', 'html', 'cssls'},
   handlers = {
     lsp.default_setup,
   }
