@@ -1,44 +1,45 @@
-local lsp = require('lsp-zero')
+local lsp_zero = require('lsp-zero')
 
-lsp.preset('recommended')
-lsp.on_attach(function(client, bufnr)
+lsp_zero.on_attach(function(client, bufnr)
   -- see :help lsp-zero-keybindings
   -- to learn the available actions
-  lsp.default_keymaps({ buffer = bufnr })
+  lsp_zero.default_keymaps({ buffer = bufnr })
 end)
-
-lsp.setup_servers({
-  'eslint',
-  'ts_ls',
-  'html',
-  'cssls',
-})
-
-require('lspconfig').lua_ls.setup({
-  settings = {
-    Lua = {
-      diagnostics = {
-        globals = { 'vim' },
-      },
-    },
-  },
-})
-
-require('cmp').setup({
-  sources = {
-    -- { name = 'copilot' },
-    { name = 'nvim_lsp' },
-    { name = 'luasnip' },
-  },
-})
 
 require('mason').setup({})
 require('mason-lspconfig').setup({
-  -- Replace the language servers listed here
-  -- with the ones you want to install
-  ensure_installed = {'ts_ls', 'lua_ls', 'eslint', 'html', 'cssls'},
+  ensure_installed = {
+    'tsserver',
+    'eslint',
+    'html',
+    'cssls',
+    'lua_ls',
+    'gopls',
+    'pyright',
+    'zls',
+  },
   handlers = {
-    lsp.default_setup,
+    lsp_zero.default_setup,
+    lua_ls = function()
+      require('lspconfig').lua_ls.setup({
+        settings = {
+          Lua = {
+            diagnostics = {
+              globals = { 'vim' },
+            },
+          },
+        },
+      })
+    end,
   }
+})
+
+local cmp = require('cmp')
+
+cmp.setup({
+  sources = {
+    { name = 'nvim_lsp' },
+    { name = 'luasnip' },
+  },
 })
 

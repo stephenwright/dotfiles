@@ -19,11 +19,14 @@ require('lazy').setup({
   -- themes
   { 'catppuccin/nvim', name = 'catppuccin' },
   { 'rose-pine/neovim', name = 'rose-pine' },
+  -- statusline
+  { 'nvim-lualine/lualine.nvim', name = 'lualine' },
   -- fuzzy finder
   { 'ibhagwan/fzf-lua', name = 'fzf', build = './install --bin' },
   -- git
   { 'tpope/vim-fugitive', name = 'fugitive' },
   { 'kdheepak/lazygit.nvim', name = 'lazygit' },
+  { 'lewis6991/gitsigns.nvim', name = 'gitsigns' },
   -- code analysis
   { 'nvim-treesitter/nvim-treesitter', name = 'treesitter', build = ':TSUpdate'},
   { 'github/copilot.vim', name = 'copilot' },
