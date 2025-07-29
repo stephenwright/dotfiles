@@ -4,42 +4,54 @@
 
 ## global options
 sort=-time
+layer=overlay
+max-history=100
+max-visible=5
 
 ## binding options
-# on-button-left=invoke-default-action
+on-button-left=invoke-default-action
+on-button-right=dismiss
+on-touch=invoke-default-action
 
 ## style options
-format=%a\n<b>%s</b>\n%b
-font=Source Code Pro
-layer=overlay
+format=<b>%a</b>\n<b>%s</b>\n%b
+font=Source Code Pro 12
 anchor=top-right
 width=400
-# height=100
-margin=10
-padding=10,10,10,10
-text-color=#ffffff
-background-color=#2f4256
-border-size=3
-border-color=#7abeff
+height=150
+margin=20
+padding=15,20,15,20
+border-size=2
 border-radius=0
-# icons=1
-# max-icon-size=64
-# default-timeout=0
-# ignore-timeout=0
-# output=DP-2
+default-timeout=8000
+group-by=app-name
+
+# Catppuccin Macchiato Colors
+background-color=#24273a
+text-color=#cad3f5
+border-color=#c6a0f6
+progress-color=over #5b6078
+
+# Icons
+icon-path=/usr/share/icons/Papirus-Dark
+max-icon-size=48
+
+[urgency=low]
+border-color=#a6da95
+default-timeout=4000
 
 [urgency=normal]
-border-color=#7abeff
+border-color=#8aadf4
+default-timeout=8000
 
 [urgency=high]
-border-color=#bf616a
+border-color=#ed8796
+text-color=#cad3f5
+background-color=#24273a
 default-timeout=0
 
-[app-name=discord]
-border-color=#7289da
+[category=mpd]
+border-color=#f5a97f
+default-timeout=2000
+group-by=category
 
-[summary~="log-.*"]
-border-color=#a3be8c
-
-[app-name=lightcord summary~="(.*(^| )orz|ORZ|sto|STO|otl|OTL( |$).*)"]
-invisible=1

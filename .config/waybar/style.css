@@ -1,38 +1,48 @@
+
+@import "../catppuccin-macchiato.css";
+
+
 * {
-  border: none;
-  border-radius: 0;
-  font-family: "Source Code Pro", monospace;
-  font-size: 12px;
-  padding: 0;
-  margin: 0;
-  box-shadow: none;
+    border: none;
+    border-radius: 0;
+    font-family: "Source Code Pro", "SauceCodePro NF", monospace;
+    font-size: 12px;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
 }
 
 window#waybar {
-  color: white;
-  background-color: rgba(0,0,0,.5);
-  /* border-bottom: 1px solid rgba(255,255,255,.3); */
+    color: white;
+    background-color: rgba(0,0,0,.5);
+    /* border-bottom: 1px solid rgba(255,255,255,.3); */
 }
 
 #workspaces button {
-  color: white;
-  padding: 0 .5em;
-  border-bottom: 3px solid transparent;
+    color: #cdd6f4;
+    padding: 0 8px;
+    margin: 0 2px;
+    border-bottom: 3px solid transparent;
+    border-radius: 4px 4px 0 0;
+    transition: all 0.3s ease;
 }
 
 #workspaces button:hover {
-  border-color: rgba(255,255,255,.3);
-  background: rgba(255,255,255,.1);
+    border-color: #74c7ec;
+    background: rgba(116, 199, 236, 0.1);
+    color: #74c7ec;
 }
 
 #workspaces button.active {
-  border-color: white;
-  background: rgba(255,255,255,.2);
+    border-color: #cba6f7;
+    background: rgba(203, 166, 247, 0.2);
+    color: #cba6f7;
 }
 
 #workspaces button.focused {
-  border-color: white;
-  background: rgba(255,255,255,.2);
+    border-color: #cba6f7;
+    background: rgba(203, 166, 247, 0.2);
+    color: #cba6f7;
 }
 
 #clock,
@@ -40,17 +50,87 @@ window#waybar {
 #network,
 #cpu,
 #memory,
+#disk,
+#temperature,
 #pulseaudio,
 #tray,
 #window {
-  margin: 0 10px;
+    margin: 0 10px;
 }
 
+/* State-based colors for system monitoring */
+#cpu.warning {
+    color: #f9e2af;
+}
+
+#cpu.critical {
+    color: #f38ba8;
+    animation: blink 1s linear infinite;
+}
+
+#memory.warning {
+    color: #f9e2af;
+}
+
+#memory.critical {
+    color: #f38ba8;
+    animation: blink 1s linear infinite;
+}
+
+#disk.warning {
+    color: #f9e2af;
+}
+
+#disk.critical {
+    color: #f38ba8;
+    animation: blink 1s linear infinite;
+}
+
+#temperature.warning {
+    color: #f9e2af;
+}
+
+#temperature.critical {
+    color: #f38ba8;
+    animation: blink 1s linear infinite;
+}
+
+#battery.warning {
+    color: #f9e2af;
+}
+
+#battery.critical {
+    color: #f38ba8;
+    animation: blink 1s linear infinite;
+}
+
+/* Network status colors */
+#network.disconnected {
+    color: #f38ba8;
+}
+
+#network.wifi {
+    color: #a6e3a1;
+}
+
+#network.ethernet {
+    color: #74c7ec;
+}
+
+/* Audio states */
+#pulseaudio.muted {
+    color: #6c7086;
+}
+
+/* Enhanced tooltips */
 tooltip {
-  background: rgba(43, 48, 59, 0.9);
-  border: 1px solid rgba(100, 114, 125, 0.5);
+    background: rgba(30, 30, 46, 0.95);
+    border: 1px solid rgba(203, 166, 247, 0.3);
+    border-radius: 8px;
+    font-size: 12px;
 }
 
 tooltip label {
-  color: white;
+    color: #cdd6f4;
+    padding: 8px;
 }

@@ -1,19 +1,37 @@
 # Base config
-width=600
-height=400
-location=center
-always_parse_args=true
-show=drun
-prompt="Run:"
-allow_markup=true
-term=alacritty
+# width=600
+# height=400
+# location=center
+# always_parse_args=true
+# show=drun
+# prompt="Run:"
+# allow_markup=true
+# term=alacritty
 
 # Optional tweaks
+# hide_scroll=true
+# insensitive=true
+# no_actions=true
+# allow_images=false
+# filter_rate=100
+# columns=1
+# dynamic_lines=true
+# line_wrap=word
+
+show=drun
+width=800
+height=450
+always_parse_args=true
+show_all=false
+term=alacritty
 hide_scroll=true
+print_command=true
 insensitive=true
-no_actions=true
-allow_images=false
-filter_rate=100
-columns=1
-dynamic_lines=true
-line_wrap=word
+prompt=󰀻 Apps
+columns=2
+sort_order=alphabetical
+gtk_dark=true
+allow_images=true
+image_size=32
+exec_search=true
+matching=fuzzy
