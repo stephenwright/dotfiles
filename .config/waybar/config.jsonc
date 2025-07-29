@@ -11,12 +11,12 @@
     ],
 
     "modules-right": [
-        "tray",
         "cpu",
         "memory",
         "battery",
         "network",
-        "pulseaudio"
+        "pulseaudio",
+        "tray"
     ],
 
     "wlr/taskbar": {
@@ -68,7 +68,7 @@
         "tooltip": false
     },
 
-    "network": {  
+    "network": {
         "format-wifi": "w {essid} ({signalStrength}%)",
         "format-ethernet": "e {ifname}",
         "format-disconnected": "Disconnected"
