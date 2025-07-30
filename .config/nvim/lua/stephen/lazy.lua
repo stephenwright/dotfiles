@@ -22,7 +22,7 @@ require('lazy').setup({
   -- statusline
   { 'nvim-lualine/lualine.nvim', name = 'lualine' },
   -- fuzzy finder
-  { 'ibhagwan/fzf-lua', name = 'fzf', build = './install --bin' },
+  { 'ibhagwan/fzf-lua', name = 'fzf' },
   -- git
   { 'tpope/vim-fugitive', name = 'fugitive' },
   { 'kdheepak/lazygit.nvim', name = 'lazygit' },
