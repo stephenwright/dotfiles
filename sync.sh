@@ -16,14 +16,14 @@ rsync -av \
 cd ~/.config
 rsync -av \
   alacritty \
-  hypr \
-  i3 \
-  i3status \
-  mako \
-  nitrogen \
   nvim \
-  polybar \
+  hypr \
+  mako \
   waybar \
   wofi \
   ~/dotfiles/.config
 
+#  i3 \
+#  i3status \
+#  nitrogen \
+#  polybar \
