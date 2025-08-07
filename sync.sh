@@ -1,29 +1,23 @@
 # make sure the destination exists
-mkdir -p ~/dotfiles/.config
+mkdir -p ~/dotfiles/base/.config
 
 # home directory dotfiles
-cd ~ 
+cd ~
 rsync -av \
   .aliases \
   .profile \
   .tmux.conf \
   .vim \
   .zshrc \
-  .Xresources \
-  ~/dotfiles
+  ~/dotfiles/base
 
 # config folder
 cd ~/.config
 rsync -av \
-  alacritty \
-  nvim \
+  foot \
+  fuzzel \
   hypr \
   mako \
+  nvim \
   waybar \
-  wofi \
-  ~/dotfiles/.config
-
-#  i3 \
-#  i3status \
-#  nitrogen \
-#  polybar \
+  ~/dotfiles/base/.config
