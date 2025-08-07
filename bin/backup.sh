@@ -6,7 +6,7 @@
 set -e
 
 # Load shared configuration
-source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../config.sh"
 
 # Create base directory if it doesn't exist
 mkdir -p $BASE_DIR/.config

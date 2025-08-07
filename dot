@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# Dotfiles management script
+# Usage: ./dot <command> [options]
+
+set -e
+
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Load shared configuration for logging
+source "$SCRIPT_DIR/config.sh"
+
+# Show usage
+usage() {
+    echo "Usage: $0 <command> [options]"
+    echo ""
+    echo "Commands:"
+    echo "  backup     Save system configs to repo (system → base)"
+    echo "  restore    Apply repo configs to system (base → system)"
+    echo "  diff       Show differences between base and system"
+    echo ""
+    echo "Examples:"
+    echo "  $0 backup"
+    echo "  $0 restore --backup"
+    echo "  $0 diff"
+    echo ""
+    echo "Run '$0 <command> --help' for command-specific options"
+}
+
+# Check if command is provided
+if [[ $# -eq 0 ]]; then
+    usage
+    exit 1
+fi
+
+COMMAND="$1"
+shift  # Remove command from arguments
+
+# Execute the appropriate script
+case "$COMMAND" in
+    backup)
+        exec "$SCRIPT_DIR/bin/backup.sh" "$@"
+        ;;
+    restore)
+        exec "$SCRIPT_DIR/bin/restore.sh" "$@"
+        ;;
+    diff)
+        exec "$SCRIPT_DIR/bin/diff.sh" "$@"
+        ;;
+    help|--help|-h)
+        usage
+        exit 0
+        ;;
+    *)
+        error "Unknown command: $COMMAND"
+        echo ""
+        usage
+        exit 1
+        ;;
+esac

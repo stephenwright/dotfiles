@@ -6,7 +6,7 @@
 set -e
 
 # Load shared configuration
-source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../config.sh"
 
 BACKUP_DIR="$DOTFILES_DIR/backup"
 RSYNC_OPTIONS="-av"

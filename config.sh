@@ -16,7 +16,7 @@ HOME_FILES=(
     .zshrc
 )
 
-# Directories to sync from ~/.config/
+# files to sync from ~/.config/
 CONFIG_FILES=(
     foot
     fuzzel
