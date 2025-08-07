@@ -13,6 +13,3 @@ alias drun='USER_ID=$(id -u) GROUP_ID=$(id -g) docker-compose run --rm'
 # git
 alias gg='git log --oneline --graph'
 
-# aws
-alias cdk='npx aws-cdk'
-

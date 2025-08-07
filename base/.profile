@@ -24,9 +24,5 @@ export EDITOR=/usr/bin/vim
 # aliases
 source ~/.aliases
 
-# nvm
-[ -d /usr/share/nvm ] && source /usr/share/nvm/init-nvm.sh
-
 # cleanup
 unset -f pathmunge
-

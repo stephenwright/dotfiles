@@ -74,11 +74,3 @@ source /usr/share/fzf/key-bindings.zsh
 # binsentry
 [ -f /srv/binsentry/devroot/.binsentry.profile ] && source /srv/binsentry/devroot/.binsentry.profile
 
-
-# pnpm
-export PNPM_HOME="/home/stephen/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# pnpm end
