@@ -154,7 +154,7 @@
 
     "custom/power": {
         "format": "⏻",
-        "on-click": "stew session pick",
+        "on-click": "~/bin/stew session",
         "tooltip-format": "Power"
     },
 

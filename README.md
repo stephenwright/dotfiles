@@ -11,11 +11,11 @@ Clean, simple dotfiles management with a unified command interface.
 ├── archive/     # old dotfiles
 ├── backup/      # backups created by `restore --backup`
 ├── base/        # config files, structure mirrors $HOME
-│   ├── .config/ # configs that go in ~/.config/
 │   ├── bin/     # scripts
 │   │   ├── dot           # tool for managing dotfiles
-│   │   └── stew          # tool for working with the desktop environment
-│   └── ...      # other files that go in ~/
+│   │   ├── dot-config    # configuration for what files get synced by `dot` helper
+│   │   └── ...
+│   └── ...
 └── README.md    # this file
 ```
 
