@@ -75,7 +75,7 @@ get_current() {
 }
 
 # Main logic
-case "${1:-current}" in
+case "${1}" in
     work)
         apply_work
         ;;
