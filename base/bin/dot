@@ -9,7 +9,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Load shared configuration for logging
-source "$SCRIPT_DIR/config.sh"
+source "$SCRIPT_DIR/dot-config"
 
 # Show usage
 usage() {
@@ -40,13 +40,13 @@ shift  # Remove command from arguments
 # Execute the appropriate script
 case "$COMMAND" in
     backup)
-        exec "$SCRIPT_DIR/bin/backup.sh" "$@"
+        exec "$SCRIPT_DIR/dot-backup" "$@"
         ;;
     restore)
-        exec "$SCRIPT_DIR/bin/restore.sh" "$@"
+        exec "$SCRIPT_DIR/dot-restore" "$@"
         ;;
     diff)
-        exec "$SCRIPT_DIR/bin/diff.sh" "$@"
+        exec "$SCRIPT_DIR/dot-diff" "$@"
         ;;
     help|--help|-h)
         usage

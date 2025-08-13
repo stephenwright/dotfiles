@@ -4,7 +4,7 @@
 # Source this file in backup.sh, restore.sh, and diff.sh
 
 # Directory paths
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_DIR="$HOME/dotfiles"
 BASE_DIR="$DOTFILES_DIR/base"
 
 # Files to sync from ~/
@@ -33,6 +33,11 @@ BIN_FILES=(
     stew-space
     stew-session
     stew-win
+    dot
+    dot-backup
+    dot-diff
+    dot-restore
+    dot-config
 )
 
 # Colors for output
