@@ -26,6 +26,15 @@ CONFIG_FILES=(
     waybar
 )
 
+# Files to sync from ~/bin/
+BIN_FILES=(
+    stew
+    stew-wall
+    stew-space
+    stew-session
+    stew-win
+)
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'

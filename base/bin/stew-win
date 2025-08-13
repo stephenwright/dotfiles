@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Window management for Hyprland
+
+set -e
+
+# Find and manage windows
+find_window() {
+    command -v jq >/dev/null || { echo "jq not found" >&2; exit 1; }
+    command -v fuzzel >/dev/null || { echo "fuzzel not found" >&2; exit 1; }
+    
+    # Get window list and show in fuzzel
+    local choice
+    choice=$(hyprctl clients -j |
+        jq -r '.[] | "\(.workspace.id) \(.class) — \(.title)"' |
+        sort |
+        fuzzel --dmenu --prompt="Window: ")
+    
+    [[ -z "$choice" ]] && exit 0
+    
+    local ws addr
+    ws=$(echo "$choice" | awk '{print $1}')
+    addr=$(hyprctl clients -j | jq -r ".[] | select(\"\(.workspace.id) \(.class) — \(.title)\" == \"$choice\") | .address")
+    
+    # Ask what to do with the window
+    local action
+    action=$(printf "Switch to workspace %s\nMove window here" "$ws" | fuzzel --dmenu --prompt="Action: ")
+    
+    case "$action" in
+        "Switch to workspace $ws")
+            hyprctl dispatch workspace "$ws" >/dev/null 2>&1
+            ;;
+        "Move window here")
+            local current_ws
+            current_ws=$(hyprctl activeworkspace -j | jq -r .id)
+            hyprctl dispatch movetoworkspacesilent "$current_ws,address:$addr" >/dev/null 2>&1
+            ;;
+    esac
+}
+
+# List all windows (no interaction)
+list_windows() {
+    command -v jq >/dev/null || { echo "jq not found" >&2; exit 1; }
+    
+    hyprctl clients -j | jq -r '.[] | "  \(.workspace.id) \(.class) — \(.title)"' | sort
+}
+
+# Main logic
+case "${1:-find}" in
+    find)
+        find_window
+        ;;
+    list)
+        list_windows
+        ;;
+    *)
+        echo "Usage: $0 [find|list]" >&2
+        exit 1
+        ;;
+esac

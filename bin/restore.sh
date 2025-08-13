@@ -40,6 +40,14 @@ create_backup() {
         fi
     done
 
+    # Backup existing bin files
+    mkdir -p "$backup_dir/bin"
+    for file in ${BIN_FILES[@]}; do
+        if [[ -f "$HOME/bin/$file" ]]; then
+            cp "$HOME/bin/$file" "$backup_dir/bin/"
+        fi
+    done
+
     success "backup created at $backup_dir"
 }
 
@@ -49,6 +57,7 @@ restore_dotfiles() {
 
     # Ensure target directories exist
     mkdir -p "$HOME/.config"
+    mkdir -p "$HOME/bin"
 
     # Restore home directory dotfiles
     if [[ -d "$BASE_DIR" ]]; then
@@ -66,6 +75,16 @@ restore_dotfiles() {
         rsync $RSYNC_OPTIONS \
             ${CONFIG_FILES[@]} \
             "$HOME/.config/"
+    fi
+
+    # Restore bin files
+    if [[ -d "$BASE_DIR/bin" ]]; then
+        log "~/bin"
+        cd "$BASE_DIR/bin"
+        rsync $RSYNC_OPTIONS \
+            ${BIN_FILES[@]} \
+            "$HOME/bin/"
+        chmod +x "$HOME/bin"/${BIN_FILES[@]}
     fi
 
     success "dotfiles restored"

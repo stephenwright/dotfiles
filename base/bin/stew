@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# System Environment Wrapper (stew) - Quick actions for environment management
+# Usage: stew <category> <action> [options]
+
+set -e
+
+category="$1"
+action="$2"
+shift 2 2>/dev/null || true
+
+case "$category" in
+    wall)
+        ~/bin/stew-wall "$action" "$@"
+        ;;
+    space)
+        ~/bin/stew-space "$action" "$@"
+        ;;
+    session)
+        ~/bin/stew-session "$action" "$@"
+        ;;
+    win)
+        ~/bin/stew-win "$action" "$@"
+        ;;
+    *)
+        echo "System Environment Wrapper (stew)"
+        echo ""
+        echo "Usage: $0 <command> <action> [options]"
+        echo ""
+        echo "Commands:"
+        echo "  wall     Wallpaper management"
+        echo "  space    Workspace/monitor profiles"
+        echo "  session  Session management (lock/logout/sleep/restart/shutdown)"
+        echo "  win      Window finder and management"
+        echo ""
+        echo "Examples:"
+        echo "  $0 wall next        # Next wallpaper"
+        echo "  $0 wall pick        # Interactive wallpaper picker"
+        echo "  $0 space work       # Switch to work profile"
+        echo "  $0 session pick     # Interactive session menu"
+        echo "  $0 win find         # Find and manage windows"
+        exit 1
+        ;;
+esac

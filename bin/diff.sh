@@ -24,6 +24,9 @@ rsync $RSYNC_OPTIONS ${HOME_FILES[@]} "$BASE_DIR/" 2>/dev/null || true
 cd "$HOME/.config"
 rsync $RSYNC_OPTIONS ${CONFIG_FILES[@]} "$BASE_DIR/.config/" 2>/dev/null || true
 
+cd "$HOME/bin"
+rsync $RSYNC_OPTIONS ${BIN_FILES[@]} "$BASE_DIR/bin/" 2>/dev/null || true
+
 log "restore.sh (base → system) would change"
 if [[ -d "$BASE_DIR" ]]; then
     cd "$BASE_DIR"
@@ -33,4 +36,9 @@ fi
 if [[ -d "$BASE_DIR/.config" ]]; then
     cd "$BASE_DIR/.config"
     rsync $RSYNC_OPTIONS ${CONFIG_FILES[@]} "$HOME/.config/" 2>/dev/null || true
+fi
+
+if [[ -d "$BASE_DIR/bin" ]]; then
+    cd "$BASE_DIR/bin"
+    rsync $RSYNC_OPTIONS ${BIN_FILES[@]} "$HOME/bin/" 2>/dev/null || true
 fi

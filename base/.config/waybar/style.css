@@ -46,12 +46,14 @@ window#waybar {
 
 #clock,
 #battery,
+#backlight,
 #network,
 #cpu,
 #memory,
 #disk,
 #temperature,
 #pulseaudio,
+#custom-power,
 #tray,
 #window {
     margin: 0 10px;
@@ -132,4 +134,18 @@ tooltip {
 tooltip label {
     color: #cdd6f4;
     padding: 8px;
+}
+
+/* Custom power module styling */
+#custom-power {
+    color: #f38ba8;
+    padding: 0 8px;
+    margin: 0 5px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+#custom-power:hover {
+    background: rgba(243, 139, 168, 0.2);
+    color: #f9c2c7;
 }

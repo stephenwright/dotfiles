@@ -1,0 +1,171 @@
+#!/bin/bash
+
+# Wallpaper management script for Hyprland
+
+set -e
+
+WALLPAPER_DIR="$HOME/wallpaper"
+HYPRPAPER_CONFIG="$HOME/.config/hypr/hyprpaper.conf"
+STATE_FILE="$HOME/.cache/wallpaper_state"
+
+mkdir -p "$(dirname "$STATE_FILE")"
+
+# Get wallpapers and current index
+get_wallpapers() {
+    find "$WALLPAPER_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) | sort
+}
+
+get_index() {
+    [[ -f "$STATE_FILE" ]] && cat "$STATE_FILE" || echo "0"
+}
+
+set_index() {
+    echo "$1" > "$STATE_FILE"
+}
+
+# Hard reload hyprpaper (kills and restarts to clear monitor-specific settings)
+hard_reload() {
+    # Kill and restart hyprpaper to clear monitor-specific settings
+    pkill hyprpaper 2>/dev/null || true
+    sleep 0.1
+    hyprpaper >/dev/null 2>&1 &
+    sleep 0.2
+}
+
+# Apply wallpaper
+apply_wallpaper() {
+    local wallpaper="$1"
+    shift
+    local wallpapers=("$@")
+    
+    # Preload new wallpapers if not already loaded
+    local loaded_wallpapers
+    readarray -t loaded_wallpapers < <(hyprctl hyprpaper listloaded 2>/dev/null || true)
+    
+    for wp in "${wallpapers[@]}"; do
+        local is_loaded=false
+        for loaded in "${loaded_wallpapers[@]}"; do
+            [[ "$loaded" == "$wp" ]] && is_loaded=true && break
+        done
+        [[ "$is_loaded" == false ]] && hyprctl hyprpaper preload "$wp" >/dev/null 2>&1
+    done
+    
+    # Set wallpaper on all monitors
+    hyprctl hyprpaper wallpaper ",$wallpaper" >/dev/null 2>&1
+    
+    # Update config file for persistence
+    {
+        echo "# Auto-generated wallpaper configuration"
+        echo "# Managed by wallpaper script"
+        echo
+        for wp in "${wallpapers[@]}"; do
+            echo "preload = $wp"
+        done
+        echo
+        echo "# Set wallpaper for all monitors"
+        echo "wallpaper = , $wallpaper"
+    } > "$HYPRPAPER_CONFIG"
+}
+
+# Main logic
+case "${1:-next}" in
+    next|prev)
+        readarray -t wallpapers < <(get_wallpapers)
+        [[ ${#wallpapers[@]} -eq 0 ]] && { echo "No wallpapers found in $WALLPAPER_DIR" >&2; exit 1; }
+        
+        current_idx=$(get_index)
+        if [[ "$1" == "prev" ]]; then
+            new_idx=$(( (current_idx - 1 + ${#wallpapers[@]}) % ${#wallpapers[@]} ))
+        else
+            new_idx=$(( (current_idx + 1) % ${#wallpapers[@]} ))
+        fi
+        
+        set_index "$new_idx"
+        apply_wallpaper "${wallpapers[$new_idx]}" "${wallpapers[@]}"
+        ;;
+        
+    current)
+        readarray -t wallpapers < <(get_wallpapers)
+        [[ ${#wallpapers[@]} -eq 0 ]] && { echo "No wallpapers found" >&2; exit 1; }
+        current_idx=$(get_index)
+        echo "${wallpapers[$current_idx]}"
+        ;;
+        
+    list)
+        readarray -t wallpapers < <(get_wallpapers)
+        current_idx=$(get_index)
+        for i in "${!wallpapers[@]}"; do
+            marker=""
+            [[ $i -eq $current_idx ]] && marker=" *"
+            echo "  $(basename "${wallpapers[$i]}")$marker"
+        done
+        ;;
+        
+    pick)
+        command -v fuzzel >/dev/null || { echo "fuzzel not found" >&2; exit 1; }
+        
+        readarray -t wallpapers < <(get_wallpapers)
+        [[ ${#wallpapers[@]} -eq 0 ]] && { echo "No wallpapers found" >&2; exit 1; }
+        
+        current_idx=$(get_index)
+        # Build fuzzel input
+        for i in "${!wallpapers[@]}"; do
+            marker=""
+            [[ $i -eq $current_idx ]] && marker=" *"
+            echo "$(basename "${wallpapers[$i]}")$marker"
+        done | fuzzel --dmenu --prompt="Wallpaper: " | {
+            read -r selected || exit 0  # Exit silently if cancelled
+            selected=${selected% *}  # Remove marker
+            
+            # Find matching wallpaper
+            for i in "${!wallpapers[@]}"; do
+                if [[ "$(basename "${wallpapers[$i]}")" == "$selected" ]]; then
+                    set_index "$i"
+                    apply_wallpaper "${wallpapers[$i]}" "${wallpapers[@]}"
+                    exit 0
+                fi
+            done
+            echo "Wallpaper not found: $selected" >&2
+            exit 1
+        }
+        ;;
+        
+    set)
+        [[ -z "$2" ]] && { echo "Usage: $0 set <filename>" >&2; exit 1; }
+        
+        readarray -t wallpapers < <(get_wallpapers)
+        target_file="$WALLPAPER_DIR/$2"
+        [[ ! -f "$target_file" ]] && target_file="$2"
+        [[ ! -f "$target_file" ]] && { echo "Wallpaper not found: $2" >&2; exit 1; }
+        
+        # Find index
+        for i in "${!wallpapers[@]}"; do
+            if [[ "${wallpapers[$i]}" == "$target_file" ]]; then
+                set_index "$i"
+                apply_wallpaper "$target_file" "${wallpapers[@]}"
+                exit 0
+            fi
+        done
+        echo "Wallpaper not in managed directory: $2" >&2
+        exit 1
+        ;;
+        
+    reload)
+        readarray -t wallpapers < <(get_wallpapers)
+        current_idx=$(get_index)
+        hard_reload
+        apply_wallpaper "${wallpapers[$current_idx]}" "${wallpapers[@]}"
+        ;;
+        
+    hard-reload)
+        readarray -t wallpapers < <(get_wallpapers)
+        current_idx=$(get_index)
+        hard_reload
+        apply_wallpaper "${wallpapers[$current_idx]}" "${wallpapers[@]}"
+        ;;
+        
+    *)
+        echo "Usage: $0 [next|prev|current|list|pick|set <file>|reload|hard-reload]"
+        exit 1
+        ;;
+esac

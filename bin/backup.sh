@@ -10,6 +10,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/../config.sh"
 
 # Create base directory if it doesn't exist
 mkdir -p $BASE_DIR/.config
+mkdir -p $BASE_DIR/bin
 
 log "Backing up system configs to $BASE_DIR"
 
@@ -26,5 +27,12 @@ cd ~/.config
 rsync -av \
   ${CONFIG_FILES[@]} \
   $BASE_DIR/.config
+
+# bin folder
+log "Backing up bin scripts..."
+cd ~/bin
+rsync -av \
+  ${BIN_FILES[@]} \
+  $BASE_DIR/bin
 
 success "Backup completed!"

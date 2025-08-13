@@ -11,14 +11,16 @@
     ],
 
     "modules-right": [
+        "tray",
         "cpu",
         "memory",
         "disk",
         "temperature",
+        "backlight",
         "battery",
         "network",
         "pulseaudio",
-        "tray"
+        "custom/power"
     ],
 
     "wlr/taskbar": {
@@ -105,6 +107,17 @@
         }
     },
 
+    "backlight": {
+        "format": "{icon} {percent}%",
+        "format-icons": ["󰃞", "󰃟", "󰃠"],
+        "scroll-step": 5,
+        "on-scroll-up": "brightnessctl set +5%",
+        "on-scroll-down": "brightnessctl set 5%-",
+        "on-click": "brightnessctl set 50%",
+        "on-click-right": "brightnessctl set 100%",
+        "tooltip-format": "Brightness: {percent}%"
+    },
+
     "battery": {
         "states": {
             "warning": 30,
@@ -113,7 +126,6 @@
         "format": "{icon} {capacity}%",
         "format-charging": "󰂄 {capacity}%",
         "format-plugged": "󰚥 {capacity}%",
-        "format-alt": "{time} {icon}",
         "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
     },
 
@@ -138,6 +150,12 @@
         "on-click": "pavucontrol",
         "on-click-right": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
         "tooltip-format": "Volume: {volume}%\nSink: {desc}"
+    },
+
+    "custom/power": {
+        "format": "⏻",
+        "on-click": "stew session pick",
+        "tooltip-format": "Power"
     },
 
     "tray": {
