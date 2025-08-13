@@ -25,7 +25,7 @@ case "$category" in
     *)
         echo "System Environment Wrapper (stew)"
         echo ""
-        echo "Usage: $0 <command> <action> [options]"
+        echo "Usage: stew <command> <action> [options]"
         echo ""
         echo "Commands:"
         echo "  wall     Wallpaper management"
@@ -34,11 +34,11 @@ case "$category" in
         echo "  win      Window finder and management"
         echo ""
         echo "Examples:"
-        echo "  $0 wall next        # Next wallpaper"
-        echo "  $0 wall pick        # Interactive wallpaper picker"
-        echo "  $0 space work       # Switch to work profile"
-        echo "  $0 session pick     # Interactive session menu"
-        echo "  $0 win find         # Find and manage windows"
+        echo "  stew wall next        # Next wallpaper"
+        echo "  stew wall pick        # Interactive wallpaper picker"
+        echo "  stew space work       # Switch to work profile"
+        echo "  stew session pick     # Interactive session menu"
+        echo "  stew win find         # Find and manage windows"
         exit 1
         ;;
 esac
