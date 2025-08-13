@@ -4,10 +4,9 @@
 
 set -e
 
-PROFILES_DIR="$HOME/.config/hypr/profiles"
 STATE_FILE="$HOME/.cache/hypr_current_profile"
 
-mkdir -p "$PROFILES_DIR" "$(dirname "$STATE_FILE")"
+mkdir -p "$(dirname "$STATE_FILE")"
 
 # Profile definitions
 apply_work() {
@@ -19,7 +18,7 @@ apply_work() {
     hyprctl dispatch moveworkspacetomonitor 5 eDP-1 >/dev/null 2>&1
     hyprctl dispatch moveworkspacetomonitor 6 eDP-1 >/dev/null 2>&1
     hyprctl dispatch moveworkspacetomonitor 7 eDP-1 >/dev/null 2>&1
-    
+
     # Set workspace rules for future workspaces
     hyprctl keyword workspace "1,monitor:DP-3" >/dev/null 2>&1
     hyprctl keyword workspace "2,monitor:eDP-1" >/dev/null 2>&1
@@ -28,7 +27,7 @@ apply_work() {
     hyprctl keyword workspace "5,monitor:eDP-1" >/dev/null 2>&1
     hyprctl keyword workspace "6,monitor:eDP-1" >/dev/null 2>&1
     hyprctl keyword workspace "7,monitor:eDP-1" >/dev/null 2>&1
-    
+
     echo "work" > "$STATE_FILE"
 }
 
@@ -37,7 +36,7 @@ apply_home() {
     for i in {1..10}; do
         hyprctl keyword workspace "$i,monitor:" >/dev/null 2>&1
     done
-    
+
     echo "home" > "$STATE_FILE"
 }
 
@@ -50,12 +49,12 @@ apply_meet() {
     hyprctl dispatch moveworkspacetomonitor 5 eDP-1 >/dev/null 2>&1
     hyprctl dispatch moveworkspacetomonitor 6 eDP-1 >/dev/null 2>&1
     hyprctl dispatch moveworkspacetomonitor 7 eDP-1 >/dev/null 2>&1
-    
+
     # Move meeting workspaces to external display
     hyprctl dispatch moveworkspacetomonitor 8 DP-3 >/dev/null 2>&1
     hyprctl dispatch moveworkspacetomonitor 9 DP-3 >/dev/null 2>&1
     hyprctl dispatch moveworkspacetomonitor 10 DP-3 >/dev/null 2>&1
-    
+
     # Set workspace rules for future workspaces
     hyprctl keyword workspace "1,monitor:eDP-1" >/dev/null 2>&1
     hyprctl keyword workspace "2,monitor:eDP-1" >/dev/null 2>&1
@@ -67,7 +66,7 @@ apply_meet() {
     hyprctl keyword workspace "8,monitor:DP-3" >/dev/null 2>&1
     hyprctl keyword workspace "9,monitor:DP-3" >/dev/null 2>&1
     hyprctl keyword workspace "10,monitor:DP-3" >/dev/null 2>&1
-    
+
     echo "meet" > "$STATE_FILE"
 }
 
@@ -97,10 +96,10 @@ case "${1:-current}" in
         ;;
     pick)
         command -v fuzzel >/dev/null || { echo "fuzzel not found" >&2; exit 1; }
-        
+
         current=$(get_current)
         profiles=("work" "home" "meet")
-        
+
         # Build fuzzel input with current profile marked
         for profile in "${profiles[@]}"; do
             marker=""
@@ -109,7 +108,7 @@ case "${1:-current}" in
         done | fuzzel --dmenu --prompt="Profile: " | {
             read -r selected || exit 0  # Exit silently if cancelled
             selected=${selected% *}  # Remove marker
-            
+
             case "$selected" in
                 work) apply_work ;;
                 home) apply_home ;;
