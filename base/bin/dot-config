@@ -18,6 +18,7 @@ HOME_FILES=(
 
 # files to sync from ~/.config/
 CONFIG_FILES=(
+    alacritty
     foot
     fuzzel
     hypr
