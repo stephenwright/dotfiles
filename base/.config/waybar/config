@@ -20,6 +20,7 @@
         "battery",
         "network",
         "pulseaudio",
+        "custom/notifications",
         "custom/power"
     ],
 
@@ -150,6 +151,15 @@
         "on-click": "pavucontrol",
         "on-click-right": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
         "tooltip-format": "Volume: {volume}%\nSink: {desc}"
+    },
+
+    "custom/notifications": {
+        "exec-if": "command -v makoctl",
+        "exec": "bash -lc 'makoctl mode | grep -qw dnd && echo  || echo 󰂚'",
+        "interval": 1,
+        "on-click": "~/bin/stew notify menu",
+        "on-click-right": "~/bin/stew notify dnd",
+        "tooltip-format": "Notifications"
     },
 
     "custom/power": {

@@ -45,7 +45,7 @@ case "${1:-pick}" in
     pick)
         command -v fuzzel >/dev/null || { echo "fuzzel not found" >&2; exit 1; }
 
-        actions=("lock" "logout" "sleep" "restart" "shutdown" "cancel")
+        actions=("lock" "logout" "sleep" "restart" "shutdown")
 
         # Build fuzzel input
         for action in "${actions[@]}"; do
@@ -59,7 +59,6 @@ case "${1:-pick}" in
                 sleep) sleep_session ;;
                 restart) restart_session ;;
                 shutdown) shutdown_session ;;
-                cancel) exit 0 ;;
                 *) echo "Invalid action: $selected" >&2; exit 1 ;;
             esac
         }

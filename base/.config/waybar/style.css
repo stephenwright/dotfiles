@@ -136,6 +136,34 @@ tooltip label {
     padding: 8px;
 }
 
+/* Custom DND module styling */
+#custom-dnd {
+    color: #f38ba8;
+    padding: 0 8px;
+    margin: 0 5px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+#custom-dnd:hover {
+    background: rgba(243, 139, 168, 0.2);
+    color: #f9c2c7;
+}
+
+/* Custom notifications module styling */
+#custom-notifications {
+    color: #74c7ec;
+    padding: 0 8px;
+    margin: 0 5px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+#custom-notifications:hover {
+    background: rgba(116, 199, 236, 0.2);
+    color: #74c7ec;
+}
+
 /* Custom power module styling */
 #custom-power {
     color: #f38ba8;

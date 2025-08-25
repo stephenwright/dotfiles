@@ -10,14 +10,17 @@ action="$2"
 shift 2 2>/dev/null || true
 
 case "$category" in
-    wall)
-        ~/bin/stew-wall "$action" "$@"
+    notify)
+        ~/bin/stew-notify "$action" "$@"
+        ;;
+    session)
+        ~/bin/stew-session "$action" "$@"
         ;;
     space)
         ~/bin/stew-space "$action" "$@"
         ;;
-    session)
-        ~/bin/stew-session "$action" "$@"
+    wall)
+        ~/bin/stew-wall "$action" "$@"
         ;;
     win)
         ~/bin/stew-win "$action" "$@"
@@ -28,17 +31,12 @@ case "$category" in
         echo "Usage: stew <command> <action> [options]"
         echo ""
         echo "Commands:"
-        echo "  wall     Wallpaper management"
+        echo "  notify   Notification management"
+        echo "  session  Session management"
         echo "  space    Workspace/monitor profiles"
-        echo "  session  Session management (lock/logout/sleep/restart/shutdown)"
+        echo "  wall     Wallpaper management"
         echo "  win      Window finder and management"
         echo ""
-        echo "Examples:"
-        echo "  stew wall next        # Next wallpaper"
-        echo "  stew wall pick        # Interactive wallpaper picker"
-        echo "  stew space work       # Switch to work profile"
-        echo "  stew session pick     # Interactive session menu"
-        echo "  stew win find         # Find and manage windows"
         exit 1
         ;;
 esac
