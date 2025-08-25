@@ -68,7 +68,7 @@ apply_wallpaper() {
 }
 
 # Main logic
-case "${1:-next}" in
+case "${1}" in
     next|prev)
         readarray -t wallpapers < <(get_wallpapers)
         [[ ${#wallpapers[@]} -eq 0 ]] && { echo "No wallpapers found in $WALLPAPER_DIR" >&2; exit 1; }
