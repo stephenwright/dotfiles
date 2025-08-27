@@ -1,174 +1,176 @@
-{
-    "layer": "top",
+[
+    {
+        "layer": "top",
 
-    "modules-left": [
-        "hyprland/workspaces",
-        "hyprland/window"
-    ],
+        "modules-left": [
+            "hyprland/workspaces",
+            "hyprland/window"
+        ],
 
-    "modules-center": [
-        "clock"
-    ],
+        "modules-center": [
+            "clock"
+        ],
 
-    "modules-right": [
-        "tray",
-        "cpu",
-        "memory",
-        "disk",
-        "temperature",
-        "backlight",
-        "battery",
-        "network",
-        "pulseaudio",
-        "custom/notifications",
-        "custom/power"
-    ],
+        "modules-right": [
+            "tray",
+            "cpu",
+            "memory",
+            "disk",
+            "temperature",
+            "backlight",
+            "battery",
+            "network",
+            "pulseaudio",
+            "custom/notifications",
+            "custom/power"
+        ],
 
-    "wlr/taskbar": {
-        "sort-by-app-id": true,
-        "on-click": "activate"
-    },
+        "wlr/taskbar": {
+            "sort-by-app-id": true,
+            "on-click": "activate"
+        },
 
-    "hyprland/workspaces": {
-        "on-click": "activate",
-        "format": "{name}"
-    },
+        "hyprland/workspaces": {
+            "on-click": "activate",
+            "format": "{name}"
+        },
 
-    "hyprland/window": {
-        "max-length": 80,
-        "tooltip": true
-    },
+        "hyprland/window": {
+            "max-length": 80,
+            "tooltip": true
+        },
 
-    "clock": {
-        "format": "{:%a %d, %I:%M %p}",
-        "tooltip-format": "<tt><small>{calendar}</small></tt>",
-        "calendar": {
-            "mode": "month",
-            "mode-mon-col": 3,
-            "weeks-pos": "right",
-            "on-scroll": 1,
-            "format": {
-                "months": "<span color='#ffead3'><b>{}</b></span>",
-                "days": "<span color='#ecc6d9'><b>{}</b></span>",
-                "weeks": "<span color='#99ffdd'><b>W{}</b></span>",
-                "weekdays": "<span color='#ffcc66'><b>{}</b></span>",
-                "today": "<span color='#ff6699'><b><u>{}</u></b></span>"
+        "clock": {
+            "format": "{:%a %d, %I:%M %p}",
+            "tooltip-format": "<tt><small>{calendar}</small></tt>",
+            "calendar": {
+                "mode": "month",
+                "mode-mon-col": 3,
+                "weeks-pos": "right",
+                "on-scroll": 1,
+                "format": {
+                    "months": "<span color='#ffead3'><b>{}</b></span>",
+                    "days": "<span color='#ecc6d9'><b>{}</b></span>",
+                    "weeks": "<span color='#99ffdd'><b>W{}</b></span>",
+                    "weekdays": "<span color='#ffcc66'><b>{}</b></span>",
+                    "today": "<span color='#ff6699'><b><u>{}</u></b></span>"
+                }
+            },
+            "actions": {
+                "on-click-right": "mode",
+                "on-scroll-up": "shift_up",
+                "on-scroll-down": "shift_down"
             }
         },
-        "actions": {
-            "on-click-right": "mode",
-            "on-scroll-up": "shift_up",
-            "on-scroll-down": "shift_down"
+
+        "cpu": {
+            "format": "󰻠 {usage}%",
+            "interval": 2,
+            "states": {
+                "warning": 70,
+                "critical": 90
+            },
+            "tooltip": true,
+            "on-click": "gnome-system-monitor"
+        },
+
+        "memory": {
+            "format": "󰍛 {percentage}%",
+            "interval": 2,
+            "states": {
+                "warning": 70,
+                "critical": 80
+            },
+            "tooltip-format": "Memory: {used:0.1f}G/{total:0.1f}G\nSwap: {swapUsed:0.1f}G/{swapTotal:0.1f}G",
+            "on-click": "gnome-system-monitor"
+        },
+
+        "disk": {
+            "interval": 30,
+            "format": "󰋊 {percentage_used}%",
+            "path": "/",
+            "tooltip-format": "Disk Usage: {used}/{total} ({percentage_used}%)\nFree: {free} ({percentage_free}%)",
+            "states": {
+                "warning": 70,
+                "critical": 90
+            }
+        },
+
+        "temperature": {
+            "thermal-zone": 2,
+            "hwmon-path": "/sys/class/hwmon/hwmon2/temp1_input",
+            "critical-threshold": 80,
+            "format": "{icon} {temperatureC}°C",
+            "format-icons": ["󱃃", "󰔏", "󱃂"],
+            "tooltip-format": "Temperature: {temperatureC}°C ({temperatureF}°F)",
+            "states": {
+                "warning": 70,
+                "critical": 80
+            }
+        },
+
+        "backlight": {
+            "format": "{icon} {percent}%",
+            "format-icons": ["󰃞", "󰃟", "󰃠"],
+            "scroll-step": 5,
+            "on-scroll-up": "brightnessctl set +5%",
+            "on-scroll-down": "brightnessctl set 5%-",
+            "on-click": "brightnessctl set 50%",
+            "on-click-right": "brightnessctl set 100%",
+            "tooltip-format": "Brightness: {percent}%"
+        },
+
+        "battery": {
+            "states": {
+                "warning": 30,
+                "critical": 15
+            },
+            "format": "{icon} {capacity}%",
+            "format-charging": "󰂄 {capacity}%",
+            "format-plugged": "󰚥 {capacity}%",
+            "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
+        },
+
+        "network": {
+            "format-wifi": "󰤨 {essid}",
+            "format-ethernet": "󰈀 {ifname}",
+            "format-disconnected": "󰤭 Disconnected",
+            "tooltip-format": "󰩟 {ifname}\n󰩠 {ipaddr}/{cidr}\n󰞒 {gwaddr}",
+            "tooltip-format-wifi": "󰤨 {essid} ({signalStrength}%)\n󰩟 {ifname}\n󰩠 {ipaddr}/{cidr}\n󰞒 {gwaddr}\n󰀂 {frequency}MHz",
+            "tooltip-format-ethernet": "󰈀 {ifname}\n󰩠 {ipaddr}/{cidr}\n󰞒 {gwaddr}",
+            "tooltip-format-disconnected": "󰤭 Disconnected",
+            "on-click": "nm-connection-editor"
+        },
+
+        "pulseaudio": {
+            "format": "{icon} {volume}%",
+            "format-muted": "󰝟 {volume}%",
+            "format-icons": {
+                "default": ["󰕿", "󰖀", "󰕾"]
+            },
+            "scroll-step": 5,
+            "on-click": "pavucontrol",
+            "on-click-right": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
+            "tooltip-format": "Volume: {volume}%\nSink: {desc}"
+        },
+
+        "custom/notifications": {
+            "exec-if": "command -v makoctl",
+            "exec": "bash -lc 'makoctl mode | grep -qw dnd && echo  || echo 󰂚'",
+            "interval": 1,
+            "on-click": "~/bin/stew notify menu",
+            "on-click-right": "~/bin/stew notify dnd",
+            "tooltip-format": "Notifications"
+        },
+
+        "custom/power": {
+            "format": "⏻",
+            "on-click": "~/bin/stew session",
+            "tooltip-format": "Power"
+        },
+
+        "tray": {
+            "spacing": 20
         }
-    },
-
-    "cpu": {
-        "format": "󰻠 {usage}%",
-        "interval": 2,
-        "states": {
-            "warning": 70,
-            "critical": 90
-        },
-        "tooltip": true,
-        "on-click": "gnome-system-monitor"
-    },
-
-    "memory": {
-        "format": "󰍛 {percentage}%",
-        "interval": 2,
-        "states": {
-            "warning": 70,
-            "critical": 80
-        },
-        "tooltip-format": "Memory: {used:0.1f}G/{total:0.1f}G\nSwap: {swapUsed:0.1f}G/{swapTotal:0.1f}G",
-        "on-click": "gnome-system-monitor"
-    },
-
-    "disk": {
-        "interval": 30,
-        "format": "󰋊 {percentage_used}%",
-        "path": "/",
-        "tooltip-format": "Disk Usage: {used}/{total} ({percentage_used}%)\nFree: {free} ({percentage_free}%)",
-        "states": {
-            "warning": 70,
-            "critical": 90
-        }
-    },
-
-    "temperature": {
-        "thermal-zone": 2,
-        "hwmon-path": "/sys/class/hwmon/hwmon2/temp1_input",
-        "critical-threshold": 80,
-        "format": "{icon} {temperatureC}°C",
-        "format-icons": ["󱃃", "󰔏", "󱃂"],
-        "tooltip-format": "Temperature: {temperatureC}°C ({temperatureF}°F)",
-        "states": {
-            "warning": 70,
-            "critical": 80
-        }
-    },
-
-    "backlight": {
-        "format": "{icon} {percent}%",
-        "format-icons": ["󰃞", "󰃟", "󰃠"],
-        "scroll-step": 5,
-        "on-scroll-up": "brightnessctl set +5%",
-        "on-scroll-down": "brightnessctl set 5%-",
-        "on-click": "brightnessctl set 50%",
-        "on-click-right": "brightnessctl set 100%",
-        "tooltip-format": "Brightness: {percent}%"
-    },
-
-    "battery": {
-        "states": {
-            "warning": 30,
-            "critical": 15
-        },
-        "format": "{icon} {capacity}%",
-        "format-charging": "󰂄 {capacity}%",
-        "format-plugged": "󰚥 {capacity}%",
-        "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
-    },
-
-    "network": {
-        "format-wifi": "󰤨 {essid}",
-        "format-ethernet": "󰈀 {ifname}",
-        "format-disconnected": "󰤭 Disconnected",
-        "tooltip-format": "󰩟 {ifname}\n󰩠 {ipaddr}/{cidr}\n󰞒 {gwaddr}",
-        "tooltip-format-wifi": "󰤨 {essid} ({signalStrength}%)\n󰩟 {ifname}\n󰩠 {ipaddr}/{cidr}\n󰞒 {gwaddr}\n󰀂 {frequency}MHz",
-        "tooltip-format-ethernet": "󰈀 {ifname}\n󰩠 {ipaddr}/{cidr}\n󰞒 {gwaddr}",
-        "tooltip-format-disconnected": "󰤭 Disconnected",
-        "on-click": "nm-connection-editor"
-    },
-
-    "pulseaudio": {
-        "format": "{icon} {volume}%",
-        "format-muted": "󰝟 {volume}%",
-        "format-icons": {
-            "default": ["󰕿", "󰖀", "󰕾"]
-        },
-        "scroll-step": 5,
-        "on-click": "pavucontrol",
-        "on-click-right": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
-        "tooltip-format": "Volume: {volume}%\nSink: {desc}"
-    },
-
-    "custom/notifications": {
-        "exec-if": "command -v makoctl",
-        "exec": "bash -lc 'makoctl mode | grep -qw dnd && echo  || echo 󰂚'",
-        "interval": 1,
-        "on-click": "~/bin/stew notify menu",
-        "on-click-right": "~/bin/stew notify dnd",
-        "tooltip-format": "Notifications"
-    },
-
-    "custom/power": {
-        "format": "⏻",
-        "on-click": "~/bin/stew session",
-        "tooltip-format": "Power"
-    },
-
-    "tray": {
-        "spacing": 20
     }
-}
+]

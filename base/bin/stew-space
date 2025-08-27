@@ -5,28 +5,30 @@
 set -e
 
 STATE_FILE="$HOME/.cache/hypr_current_profile"
+LAPTOP="eDP-1"
+EXTERNAL=$(hyprctl monitors -j | jq -r '.[] | select(.name != "eDP-1") | .name' | head -n1)
 
 mkdir -p "$(dirname "$STATE_FILE")"
 
 # Profile definitions
 apply_work() {
     # Move existing workspaces to correct monitors
-    hyprctl dispatch moveworkspacetomonitor 1 DP-3 >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 2 eDP-1 >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 3 DP-3 >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 4 DP-3 >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 5 eDP-1 >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 6 eDP-1 >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 7 eDP-1 >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 1 $EXTERNAL >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 2 $LAPTOP >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 3 $EXTERNAL >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 4 $EXTERNAL >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 5 $LAPTOP >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 6 $LAPTOP >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 7 $LAPTOP >/dev/null 2>&1
 
     # Set workspace rules for future workspaces
-    hyprctl keyword workspace "1,monitor:DP-3" >/dev/null 2>&1
-    hyprctl keyword workspace "2,monitor:eDP-1" >/dev/null 2>&1
-    hyprctl keyword workspace "3,monitor:DP-3" >/dev/null 2>&1
-    hyprctl keyword workspace "4,monitor:DP-3" >/dev/null 2>&1
-    hyprctl keyword workspace "5,monitor:eDP-1" >/dev/null 2>&1
-    hyprctl keyword workspace "6,monitor:eDP-1" >/dev/null 2>&1
-    hyprctl keyword workspace "7,monitor:eDP-1" >/dev/null 2>&1
+    hyprctl keyword workspace "1,monitor:$EXTERNAL" >/dev/null 2>&1
+    hyprctl keyword workspace "2,monitor:$LAPTOP" >/dev/null 2>&1
+    hyprctl keyword workspace "3,monitor:$EXTERNAL" >/dev/null 2>&1
+    hyprctl keyword workspace "4,monitor:$EXTERNAL" >/dev/null 2>&1
+    hyprctl keyword workspace "5,monitor:$LAPTOP" >/dev/null 2>&1
+    hyprctl keyword workspace "6,monitor:$LAPTOP" >/dev/null 2>&1
+    hyprctl keyword workspace "7,monitor:$LAPTOP" >/dev/null 2>&1
 
     echo "work" > "$STATE_FILE"
 }
@@ -42,30 +44,30 @@ apply_home() {
 
 apply_meet() {
     # Move existing workspaces - personal ones to laptop
-    hyprctl dispatch moveworkspacetomonitor 1 eDP-1 >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 2 eDP-1 >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 3 eDP-1 >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 4 eDP-1 >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 5 eDP-1 >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 6 eDP-1 >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 7 eDP-1 >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 1 $LAPTOP >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 2 $LAPTOP >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 3 $LAPTOP >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 4 $LAPTOP >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 5 $LAPTOP >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 6 $LAPTOP >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 7 $LAPTOP >/dev/null 2>&1
 
     # Move meeting workspaces to external display
-    hyprctl dispatch moveworkspacetomonitor 8 DP-3 >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 9 DP-3 >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 10 DP-3 >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 8 $EXTERNAL >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 9 $EXTERNAL >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 10 $EXTERNAL >/dev/null 2>&1
 
     # Set workspace rules for future workspaces
-    hyprctl keyword workspace "1,monitor:eDP-1" >/dev/null 2>&1
-    hyprctl keyword workspace "2,monitor:eDP-1" >/dev/null 2>&1
-    hyprctl keyword workspace "3,monitor:eDP-1" >/dev/null 2>&1
-    hyprctl keyword workspace "4,monitor:eDP-1" >/dev/null 2>&1
-    hyprctl keyword workspace "5,monitor:eDP-1" >/dev/null 2>&1
-    hyprctl keyword workspace "6,monitor:eDP-1" >/dev/null 2>&1
-    hyprctl keyword workspace "7,monitor:eDP-1" >/dev/null 2>&1
-    hyprctl keyword workspace "8,monitor:DP-3" >/dev/null 2>&1
-    hyprctl keyword workspace "9,monitor:DP-3" >/dev/null 2>&1
-    hyprctl keyword workspace "10,monitor:DP-3" >/dev/null 2>&1
+    hyprctl keyword workspace "1,monitor:$LAPTOP" >/dev/null 2>&1
+    hyprctl keyword workspace "2,monitor:$LAPTOP" >/dev/null 2>&1
+    hyprctl keyword workspace "3,monitor:$LAPTOP" >/dev/null 2>&1
+    hyprctl keyword workspace "4,monitor:$LAPTOP" >/dev/null 2>&1
+    hyprctl keyword workspace "5,monitor:$LAPTOP" >/dev/null 2>&1
+    hyprctl keyword workspace "6,monitor:$LAPTOP" >/dev/null 2>&1
+    hyprctl keyword workspace "7,monitor:$LAPTOP" >/dev/null 2>&1
+    hyprctl keyword workspace "8,monitor:$EXTERNAL" >/dev/null 2>&1
+    hyprctl keyword workspace "9,monitor:$EXTERNAL" >/dev/null 2>&1
+    hyprctl keyword workspace "10,monitor:$EXTERNAL" >/dev/null 2>&1
 
     echo "meet" > "$STATE_FILE"
 }

@@ -44,6 +44,12 @@ window#waybar {
     color: #cba6f7;
 }
 
+#taskbar button {
+    padding: 0 6px;
+    margin: 0 2px;
+    transition: all 0.3s ease;
+}
+
 #clock,
 #battery,
 #backlight,
