@@ -3,13 +3,13 @@
 # Dotfiles management script
 # Usage: ./dot <command> [options]
 
-set -e
+set -euo pipefail
 
 # Get script directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$HOME/dotfiles/bin"
 
 # Load shared configuration for logging
-source "$SCRIPT_DIR/dot-config"
+source "$SCRIPT_DIR/dot.conf"
 
 # Show usage
 usage() {

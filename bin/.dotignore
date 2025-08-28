@@ -1,0 +1,8 @@
+# Rsync exclude patterns for dot scripts
+# Paths are relative to the source directory of each rsync call.
+
+# Examples:
+# .config/hypr/machine.conf
+# .config/hypr/monitors-*.conf
+# .cache/
+

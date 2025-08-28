@@ -3,21 +3,25 @@
 # Show differences between ./base and current system files
 # Enhanced diff with better output and actual content differences
 
-set -e
+set -euo pipefail
 
 # Load shared configuration
-source "$(dirname "${BASH_SOURCE[0]}")/dot-config"
+source "$(dirname "${BASH_SOURCE[0]}")/dot.conf"
 
 # Check if base directory exists
 if [[ ! -d "$BASE_DIR" ]]; then
     error "Base directory not found: $BASE_DIR"
-    error "Run ./backup.sh first to populate the base directory"
+    error "Run 'dot backup' first to populate the base directory"
     exit 1
 fi
 
 # Options
 MODE=""
-RSYNC_OPTIONS="--dry-run --itemize-changes --recursive --human-readable"
+# rsync options for diff (include deletions)
+RSYNC_DIFF_OPTS=( --dry-run --itemize-changes --recursive --human-readable --delete --ignore-missing-args )
+if [[ -f "$EXCLUDE_FILE" ]]; then
+    RSYNC_DIFF_OPTS+=( --exclude-from="$EXCLUDE_FILE" )
+fi
 
 # Function to get file differences with actual content
 show_file_diff() {
@@ -29,7 +33,8 @@ show_file_diff() {
         if ! cmp -s "$file1" "$file2"; then
             log "### $label: $(basename "$file1")"
             if [[ "$MODE" == "full" ]]; then
-                diff -u "$file1" "$file2" 2>/dev/null || true
+                diff -u --text "$file1" "$file2" 2>/dev/null || \
+                git diff --no-index -- "$file1" "$file2" 2>/dev/null || true
             else
                 echo "Files differ (use 'full' option to see details)"
             fi
@@ -71,7 +76,7 @@ compare_directories() {
     else
         cd "$system_dir" 2>/dev/null || return
         local rsync_output
-        rsync_output=$(rsync $RSYNC_OPTIONS "${files_array[@]}" "$base_dir/" 2>/dev/null || true)
+        rsync_output=$(rsync "${RSYNC_DIFF_OPTS[@]}" "${files_array[@]}" "$base_dir/" 2>/dev/null || true)
 
         if [[ -n "$rsync_output" ]]; then
             echo "$rsync_output"
@@ -116,4 +121,3 @@ echo ""
 # Compare each section
 compare_directories "Home Files" "$BASE_DIR" "$HOME" "${HOME_FILES[@]}"
 compare_directories "Config Files" "$BASE_DIR/.config" "$HOME/.config" "${CONFIG_FILES[@]}"
-compare_directories "Bin Files" "$BASE_DIR/bin" "$HOME/bin" "${BIN_FILES[@]}"

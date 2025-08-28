@@ -5,25 +5,27 @@
 
 set -e
 
+BIN_DIR="$HOME/dotfiles/bin"
+
 category="$1"
 action="$2"
 shift 2 2>/dev/null || true
 
 case "$category" in
     notify)
-        ~/bin/stew-notify "$action" "$@"
+        "$BIN_DIR/stew-notify" "$action" "$@"
         ;;
     session)
-        ~/bin/stew-session "$action" "$@"
+        "$BIN_DIR/stew-session" "$action" "$@"
         ;;
     space)
-        ~/bin/stew-space "$action" "$@"
+        "$BIN_DIR/stew-space" "$action" "$@"
         ;;
     wall)
-        ~/bin/stew-wall "$action" "$@"
+        "$BIN_DIR/stew-wall" "$action" "$@"
         ;;
     win)
-        ~/bin/stew-win "$action" "$@"
+        "$BIN_DIR/stew-win" "$action" "$@"
         ;;
     *)
         echo "System Environment Wrapper (stew)"

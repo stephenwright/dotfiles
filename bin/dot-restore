@@ -3,18 +3,17 @@
 # Restore dotfiles from ./base to ~/
 # This script syncs configurations from the repository to your system
 
-set -e
+set -euo pipefail
 
 # Load shared configuration
-source "$(dirname "${BASH_SOURCE[0]}")/dot-config"
+source "$(dirname "${BASH_SOURCE[0]}")/dot.conf"
 
 BACKUP_DIR="$DOTFILES_DIR/backup"
-RSYNC_OPTIONS="-av"
 
 # Check if base directory exists
 if [[ ! -d "$BASE_DIR" ]]; then
     error "Base directory not found: $BASE_DIR"
-    error "Run ./backup.sh first to populate the base directory"
+    error "Run 'dot backup' first to populate the base directory"
     exit 1
 fi
 
@@ -40,14 +39,6 @@ create_backup() {
         fi
     done
 
-    # Backup existing bin files
-    mkdir -p "$backup_dir/bin"
-    for file in ${BIN_FILES[@]}; do
-        if [[ -f "$HOME/bin/$file" ]]; then
-            cp "$HOME/bin/$file" "$backup_dir/bin/"
-        fi
-    done
-
     success "backup created at $backup_dir"
 }
 
@@ -57,13 +48,14 @@ restore_dotfiles() {
 
     # Ensure target directories exist
     mkdir -p "$HOME/.config"
-    mkdir -p "$HOME/bin"
 
     # Restore home directory dotfiles
     if [[ -d "$BASE_DIR" ]]; then
         log "~"
         cd "$BASE_DIR"
-        rsync $RSYNC_OPTIONS \
+        RSYNC_OPTS=( "${RSYNC_COMMON[@]}" )
+        if [[ "$DELETE_MODE" == true ]]; then RSYNC_OPTS+=( --delete ); fi
+        rsync -v "${RSYNC_OPTS[@]}" \
             ${HOME_FILES[@]} \
             "$HOME/"
     fi
@@ -72,19 +64,11 @@ restore_dotfiles() {
     if [[ -d "$BASE_DIR/.config" ]]; then
         log "~/.config"
         cd "$BASE_DIR/.config"
-        rsync $RSYNC_OPTIONS \
+        RSYNC_OPTS=( "${RSYNC_COMMON[@]}" )
+        if [[ "$DELETE_MODE" == true ]]; then RSYNC_OPTS+=( --delete ); fi
+        rsync -v "${RSYNC_OPTS[@]}" \
             ${CONFIG_FILES[@]} \
             "$HOME/.config/"
-    fi
-
-    # Restore bin files
-    if [[ -d "$BASE_DIR/bin" ]]; then
-        log "~/bin"
-        cd "$BASE_DIR/bin"
-        rsync $RSYNC_OPTIONS \
-            ${BIN_FILES[@]} \
-            "$HOME/bin/"
-        chmod +x "$HOME/bin"/${BIN_FILES[@]}
     fi
 
     success "dotfiles restored"
@@ -92,12 +76,15 @@ restore_dotfiles() {
 
 # Parse arguments
 BACKUP_FIRST=false
-DRY_RUN=false
+DELETE_MODE=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         -b|--backup)
             BACKUP_FIRST=true
+            shift ;;
+        --delete)
+            DELETE_MODE=true
             shift ;;
         -h|--help)
             echo "Usage: $0 [OPTIONS]"
@@ -106,6 +93,7 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Options:"
             echo "  -b, --backup     Create backup before restoring"
+            echo "  --delete         Remove files in system that were deleted in base"
             echo "  -h, --help   Show this help"
             exit 0 ;;
         *)

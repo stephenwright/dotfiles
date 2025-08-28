@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Backup current system configs to repo
+# This script syncs configurations from the system to the repository
+
+set -euo pipefail
+
+# Load shared configuration
+source "$(dirname "${BASH_SOURCE[0]}")/dot.conf"
+
+# Flags
+DELETE_MODE=false
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --delete)
+            DELETE_MODE=true
+            shift ;;
+        -h|--help)
+            echo "Usage: $0 [--delete]"
+            echo ""
+            echo "Backup system configs to repository (system → base)"
+            echo ""
+            echo "Options:"
+            echo "  --delete    Remove files in base that no longer exist in system"
+            exit 0 ;;
+        *)
+            error "Unknown option: $1"
+            exit 1 ;;
+    esac
+done
+
+RSYNC_OPTS=( "${RSYNC_COMMON[@]}" )
+if [[ "$DELETE_MODE" == true ]]; then
+    RSYNC_OPTS+=( --delete )
+fi
+
+log "Backing up system configs to $BASE_DIR"
+
+# home folder
+log "Backing up home dotfiles..."
+cd ~
+rsync -v "${RSYNC_OPTS[@]}" \
+  ${HOME_FILES[@]} \
+  "$BASE_DIR"
+
+# config folder
+log "Backing up config directories..."
+cd ~/.config
+rsync -v "${RSYNC_OPTS[@]}" \
+  ${CONFIG_FILES[@]} \
+  "$BASE_DIR/.config"
