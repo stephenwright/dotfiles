@@ -7,3 +7,7 @@ blur = true
 normal = { family = "source code pro" }
 size = 10
 
+[terminal.shell]
+program = "/usr/bin/zsh"
+args = ["-l"]
+
