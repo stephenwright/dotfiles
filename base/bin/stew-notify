@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# Notification assistant (mako + fuzzel)
+
+set -euo pipefail
+
+is_dnd() {
+  makoctl mode | grep -qw dnd
+}
+
+dnd_toggle() {
+  makoctl mode -t dnd
+}
+
+show_history() {
+  makoctl history
+}
+
+menu_pick() {
+  command -v fuzzel >/dev/null || { echo "fuzzel not found" >&2; exit 1; }
+
+  current_dnd="$(is_dnd && echo "on" || echo "off")"
+  margin=10
+  args="--dmenu --anchor=top-right --x-margin=${margin} --y-margin=${margin}"
+
+  {
+    echo "Toggle DND (currently: ${current_dnd})"
+    makoctl history | awk 'match($0, /^Notification ([0-9]+): (.*)$/, m) { print m[1] " : " m[2] }'
+  } | fuzzel --prompt='Notifications: ' ${args} | {
+    read -r selection || exit 0
+
+    case "$selection" in
+      "Toggle DND"*)
+        dnd_toggle
+        ;;
+      *)
+        id="$(printf '%s' "$selection" | awk -F ' : ' '{print $1}')"
+        [ -n "${id:-}" ] && makoctl restore -n "$id"
+        ;;
+    esac
+  }
+}
+
+case "${1}" in
+  dnd)
+    dnd_toggle
+    ;;
+  history)
+    show_history
+    ;;
+  menu)
+    menu_pick
+    ;;
+  status)
+    is_dnd && echo "dnd" || echo "on"
+    ;;
+  *)
+    echo "Usage: $0 [dnd|history|menu|status]" >&2
+    exit 1
+    ;;
+esac

@@ -46,11 +46,13 @@ case "${1:-pick}" in
         command -v fuzzel >/dev/null || { echo "fuzzel not found" >&2; exit 1; }
 
         actions=("lock" "logout" "sleep" "restart" "shutdown")
+        margin=10
+        args="--dmenu --anchor=top-right --x-margin=${margin} --y-margin=${margin}"
 
         # Build fuzzel input
         for action in "${actions[@]}"; do
             echo "$action"
-        done | fuzzel --dmenu --prompt="Session: " | {
+        done | fuzzel --prompt='Session: ' ${args} | {
             read -r selected || exit 0  # Exit silently if cancelled
 
             case "$selected" in
