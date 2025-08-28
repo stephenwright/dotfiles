@@ -19,7 +19,6 @@ HOME_FILES=(
 # files to sync from ~/.config/
 CONFIG_FILES=(
     alacritty
-    foot
     fuzzel
     hypr
     mako
@@ -36,6 +35,7 @@ BIN_FILES=(
     stew-win
     dot
     dot-backup
+    dot-conifg
     dot-diff
     dot-restore
     dot-config
