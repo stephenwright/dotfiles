@@ -1,4 +1,6 @@
--- leader key (MUST be set before lazy)
+---@diagnostic disable: undefined-global
+
+-- leader key
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
@@ -30,6 +32,7 @@ end, { desc = "Toggle word wrap" })
 vim.keymap.set({'n', 'v'}, '<leader>y', '"+y')
 vim.keymap.set({'n', 'v'}, '<leader>yy', '"+yy')
 vim.keymap.set({'n', 'v'}, '<leader>p', '"+p')
+vim.keymap.set({'n', 'v'}, '<leader>P', '"+P')
 
 -- plugins
 local lazypath = vim.fn.stdpath('data') .. '/lazy/lazy.nvim'
@@ -164,11 +167,6 @@ require('lazy').setup({
     end,
   },
 
-  -- {
-  --   'github/copilot.vim',
-  --   event = 'InsertEnter',
-  -- },
-
   {
     'VonHeikemen/lsp-zero.nvim',
     branch = 'v3.x',
@@ -206,15 +204,10 @@ require('lazy').setup({
         handlers = {
           lsp_zero.default_setup,
           lua_ls = function()
-            require('lspconfig').lua_ls.setup({
-              settings = {
-                Lua = {
-                  diagnostics = {
-                    globals = { 'vim' },
-                  },
-                },
-              },
-            })
+            local lspconfig = require('lspconfig')
+            local lua_opts = lsp_zero.nvim_lua_ls()
+            lua_opts.settings.Lua.diagnostics.globals = { 'vim' }
+            lspconfig.lua_ls.setup(lua_opts)
           end,
         }
       })
