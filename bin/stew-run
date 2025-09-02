@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Command runner
+
+set -euo pipefail
+
+cmd=$(fuzzel --dmenu --prompt-only="$ ")
+
+if [ -n "$cmd" ]; then
+    output=$(zsh -l -c "source ~/.profile && $cmd" 2>&1)
+    [ -n "$output" ] && notify-send "\$ $cmd" "$output"
+fi
+

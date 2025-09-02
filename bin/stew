@@ -15,8 +15,14 @@ case "$category" in
     notify)
         "$BIN_DIR/stew-notify" "$action" "$@"
         ;;
+    profile)
+        "$BIN_DIR/stew-profile" "$action" "$@"
+        ;;
     session)
         "$BIN_DIR/stew-session" "$action" "$@"
+        ;;
+    run)
+        "$BIN_DIR/stew-run" "$action" "$@"
         ;;
     space)
         "$BIN_DIR/stew-space" "$action" "$@"
@@ -34,7 +40,8 @@ case "$category" in
         echo ""
         echo "Commands:"
         echo "  notify   Notification management"
-        echo "  session  Session management"
+        echo "  profile  Profile management"
+        echo "  run      Command runner"
         echo "  space    Workspace/monitor profiles"
         echo "  wall     Wallpaper management"
         echo "  win      Window finder and management"

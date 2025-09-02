@@ -10,6 +10,28 @@ EXTERNAL=$(hyprctl monitors -j | jq -r '.[] | select(.name != "eDP-1") | .name' 
 
 mkdir -p "$(dirname "$STATE_FILE")"
 
+# workspaces, p=primary, e=external when available
+# 1 - e - term
+# 2 - p - firefox
+# 3 - e - code
+# 4 - e - chrome
+# 5 - p - slack
+# 6 - p - discord
+# 7 - p - spotify
+
+swap_workspace() {
+  aw=$(hyprctl activeworkspace -j | jq -r '.id')
+  am=$(hyprctl activeworkspace -j | jq -r '.monitor')
+ 
+  if [[ -n "$EXTERNAL" ]]; then
+    if [[ "$current_monitor" == "$LAPTOP" ]]; then
+      hyprctl dispatch moveworkspacetomonitor "$active_ws" "$EXTERNAL"
+    elif [[ "$current_monitor" == "$EXTERNAL" ]]; then
+      hyprctl dispatch moveworkspacetomonitor "$active_ws" "$LAPTOP"
+    fi
+  fi
+}
+
 # Profile definitions
 apply_work() {
     # Move existing workspaces to correct monitors
@@ -20,6 +42,9 @@ apply_work() {
     hyprctl dispatch moveworkspacetomonitor 5 $LAPTOP >/dev/null 2>&1
     hyprctl dispatch moveworkspacetomonitor 6 $LAPTOP >/dev/null 2>&1
     hyprctl dispatch moveworkspacetomonitor 7 $LAPTOP >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 8 $EXTERNAL >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 9 $EXTERNAL >/dev/null 2>&1
+    hyprctl dispatch moveworkspacetomonitor 10 $EXTERNAL >/dev/null 2>&1
 
     # Set workspace rules for future workspaces
     hyprctl keyword workspace "1,monitor:$EXTERNAL" >/dev/null 2>&1
@@ -29,6 +54,9 @@ apply_work() {
     hyprctl keyword workspace "5,monitor:$LAPTOP" >/dev/null 2>&1
     hyprctl keyword workspace "6,monitor:$LAPTOP" >/dev/null 2>&1
     hyprctl keyword workspace "7,monitor:$LAPTOP" >/dev/null 2>&1
+    hyprctl keyword workspace "8,monitor:$EXTERNAL" >/dev/null 2>&1
+    hyprctl keyword workspace "9,monitor:$EXTERNAL" >/dev/null 2>&1
+    hyprctl keyword workspace "10,monitor:$EXTERNAL" >/dev/null 2>&1
 
     echo "work" > "$STATE_FILE"
 }
@@ -78,6 +106,9 @@ get_current() {
 
 # Main logic
 case "${1}" in
+    swap)
+        swap_workspace
+        ;;
     work)
         apply_work
         ;;
@@ -120,7 +151,7 @@ case "${1}" in
         }
         ;;
     *)
-        echo "Usage: $0 [work|home|meet|current|list|pick]" >&2
+        echo "Usage: $0 [work|home|meet|current|list|pick|swap]" >&2
         exit 1
         ;;
 esac
