@@ -28,6 +28,10 @@ vim.keymap.set("n", "<leader>w", function()
   vim.wo.breakindent = vim.wo.wrap -- same for breakindent
 end, { desc = "Toggle word wrap" })
 
+vim.keymap.set("n", "<leader>i", function()
+  vim.lsp.buf.format({ async = true })
+end, { desc = "Format current buffer" })
+
 -- clipboard operations
 vim.keymap.set({'n', 'v'}, '<leader>y', '"+y')
 vim.keymap.set({'n', 'v'}, '<leader>yy', '"+yy')
