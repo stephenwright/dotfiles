@@ -1,22 +1,22 @@
 # options
-#setopt correct                                                  # Auto correct mistakes
-setopt extendedglob                                             # Extended globbing. Allows using regular expressions with *
-setopt nocaseglob                                               # Case insensitive globbing
-setopt rcexpandparam                                            # Array expension with parameters
-setopt nocheckjobs                                              # Don't warn about running processes when exiting
-setopt numericglobsort                                          # Sort filenames numerically when it makes sense
-setopt nobeep                                                   # No beep
-setopt appendhistory                                            # Immediately append history instead of overwriting
-setopt histignorealldups                                        # If a new command is a duplicate, remove the older one
-setopt sharehistory
-setopt histnostore
-setopt histsavenodups
+#setopt correct             # Auto correct mistakes
+setopt extendedglob         # Extended globbing. Allows using regular expressions with *
+setopt nocaseglob           # Case insensitive globbing
+setopt rcexpandparam        # Array expension with parameters
+setopt nocheckjobs          # Don't warn about running processes when exiting
+setopt numericglobsort      # Sort filenames numerically when it makes sense
+setopt nobeep               # No beep
+setopt histignoredups       # Ignore consectutive duplicates
+setopt histignorealldups    # If a new command is a duplicate, remove the older one
+setopt histsavenodups       # Don't write duplicates to the history file
+setopt histnostore          # Don't store the history command
 setopt histverify
-setopt autocd                                                   # if only directory path is entered, cd there.
+setopt appendhistory        # Append history instead of overwriting
+setopt sharehistory         # Share history across sessions                                  
+setopt autocd               # If only directory path is entered, cd there.
 
 # prompt
 PS1="%(#.%F{red}.%F{green})%n%f@%m%F{cyan}%21<..<%~%<<%f%# "
-
 
 # completion
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'       # Case insensitive tab completion
@@ -29,12 +29,12 @@ zstyle ':completion:*' cache-path ~/.zsh/cache
 
 # history
 HISTFILE=~/.zsh/histfile
-HISTSIZE=1000
-SAVEHIST=500
+HISTSIZE=10000
+SAVEHIST=10000
 
 WORDCHARS=${WORDCHARS//\/[&.;]}                                 # Don't consider certain characters part of the word
 
-# key bindins
+# key bindings
 bindkey -e
 bindkey "\e[1~" beginning-of-line                               # Home
 bindkey "\e[4~" end-of-line                                     # End
