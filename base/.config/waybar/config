@@ -22,6 +22,7 @@
             "network",
             "pulseaudio",
             "custom/notifications",
+            "custom/idle-inhibit",
             "custom/power"
         ],
 
@@ -161,6 +162,15 @@
             "on-click": "~/bin/stew notify menu",
             "on-click-right": "~/bin/stew notify dnd",
             "tooltip-format": "Notifications"
+        },
+
+        "custom/idle-inhibit": {
+            "exec": "pgrep -x hypridle > /dev/null && echo '󰛊' || echo '󰅶'",
+            "interval": 2,
+            "on-click": "~/bin/stew idle toggle",
+            "return-type": "",
+            "format": "{}",
+            "tooltip-format": "Toggle idle management (caffeine mode)"
         },
 
         "custom/power": {

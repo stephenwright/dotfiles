@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Idle management for hypridle
+
+set -euo pipefail
+
+STATE_FILE="${XDG_RUNTIME_DIR:-/tmp}/hypridle-toggle-state"
+
+is_enabled() {
+    pgrep -x hypridle > /dev/null
+}
+
+get_status() {
+    if is_enabled; then
+        echo "enabled"
+    else
+        echo "disabled"
+    fi
+}
+
+toggle() {
+    if is_enabled; then
+        pkill hypridle
+        echo "disabled" > "$STATE_FILE"
+        notify-send -u normal "Caffeine Mode" "Idle management disabled - staying awake ☕" -i preferences-system-power
+    else
+        hypridle &
+        echo "enabled" > "$STATE_FILE"
+        notify-send -u normal "Idle Management" "Idle management enabled 💤" -i preferences-system-power
+    fi
+}
+
+case "${1:-status}" in
+    toggle)
+        toggle
+        ;;
+    status)
+        get_status
+        ;;
+    *)
+        echo "Usage: $0 [toggle|status]" >&2
+        exit 1
+        ;;
+esac

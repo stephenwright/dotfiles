@@ -12,6 +12,9 @@ action="$2"
 shift 2 2>/dev/null || true
 
 case "$category" in
+    idle)
+        "$BIN_DIR/stew-idle" "$action" "$@"
+        ;;
     notify)
         "$BIN_DIR/stew-notify" "$action" "$@"
         ;;
@@ -39,6 +42,7 @@ case "$category" in
         echo "Usage: stew <command> <action> [options]"
         echo ""
         echo "Commands:"
+        echo "  idle     Idle/sleep management"
         echo "  notify   Notification management"
         echo "  profile  Workspace/monitor profiles"
         echo "  run      Command runner"
