@@ -170,6 +170,18 @@ tooltip label {
     color: #74c7ec;
 }
 
+/* custom idle */
+#custom-idle-inhibit {
+    padding: 0 8px;
+    margin: 0 5px;
+    color: #fff;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+#custom-idle-inhibit:hover {
+    background: rgba(224, 241, 67, 0.2)
+}
+
 /* Custom power module styling */
 #custom-power {
     color: #f38ba8;
