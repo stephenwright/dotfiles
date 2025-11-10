@@ -165,7 +165,7 @@
         },
 
         "custom/idle-inhibit": {
-            "exec": "pgrep -x hypridle > /dev/null && echo '󰛊' || echo '󰅶'",
+            "exec": "~/bin/stew idle status | grep -q enabled && echo '󰛊' || echo '󰅶'",
             "interval": 2,
             "on-click": "~/bin/stew idle toggle",
             "return-type": "",
