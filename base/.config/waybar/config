@@ -4,6 +4,7 @@
 
         "modules-left": [
             "hyprland/workspaces",
+            "custom/window-close",
             "hyprland/window"
         ],
 
@@ -33,12 +34,25 @@
 
         "hyprland/workspaces": {
             "on-click": "activate",
-            "format": "{name}"
+            "format": "{name}",
+            "cursor": false
         },
 
         "hyprland/window": {
             "max-length": 80,
             "tooltip": true
+        },
+
+        "custom/window-close": {
+            "exec": "~/.config/waybar/scripts/window-close.sh",
+            "return-type": "json",
+            "interval": 1,
+            "hide-empty-text": true,
+            "format": "{}",
+            "tooltip": true,
+            "tooltip-format": "Close window",
+            "on-click": "hyprctl dispatch killactive",
+            "on-click-middle": "hyprctl dispatch forcekillactive"
         },
 
         "clock": {

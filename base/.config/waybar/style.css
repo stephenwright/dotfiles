@@ -17,6 +17,10 @@ window#waybar {
     /* border-bottom: 1px solid rgba(255,255,255,.3); */
 }
 
+#workspaces {
+    margin-right: 10px;
+}
+
 #workspaces button {
     color: #cdd6f4;
     padding: 0 8px;
@@ -60,8 +64,7 @@ window#waybar {
 #temperature,
 #pulseaudio,
 #custom-power,
-#tray,
-#window {
+#tray {
     margin: 0 10px;
 }
 
@@ -194,4 +197,26 @@ tooltip label {
 #custom-power:hover {
     background: rgba(243, 139, 168, 0.2);
     color: #f9c2c7;
+}
+
+/* Custom window-close button styling */
+#custom-window-close {
+    color: #f38ba8;
+    font-weight: bold;
+    padding: 0 8px;
+    margin-right: 5px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+#custom-window-close:hover {
+    background: rgba(243, 139, 168, 0.3);
+    color: #ffffff;
+}
+
+#custom-window-close.hidden {
+    padding: 0;
+    margin: 0;
+    border: 2px solid red;
+    font-size: 0;
 }
