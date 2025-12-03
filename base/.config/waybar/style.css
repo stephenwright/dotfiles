@@ -26,7 +26,6 @@ window#waybar {
     padding: 0 8px;
     margin: 0 2px;
     border-bottom: 3px solid transparent;
-    border-radius: 4px 4px 0 0;
     transition: all 0.3s ease;
 }
 
@@ -150,7 +149,6 @@ tooltip label {
     color: #f38ba8;
     padding: 0 8px;
     margin: 0 5px;
-    border-radius: 4px;
     transition: all 0.3s ease;
 }
 
@@ -164,7 +162,6 @@ tooltip label {
     color: #74c7ec;
     padding: 0 8px;
     margin: 0 5px;
-    border-radius: 4px;
     transition: all 0.3s ease;
 }
 
@@ -178,7 +175,6 @@ tooltip label {
     padding: 0 8px;
     margin: 0 5px;
     color: #fff;
-    border-radius: 4px;
     transition: all 0.3s ease;
 }
 #custom-idle-inhibit:hover {
@@ -190,7 +186,6 @@ tooltip label {
     color: #f38ba8;
     padding: 0 8px;
     margin: 0 5px;
-    border-radius: 4px;
     transition: all 0.3s ease;
 }
 
@@ -203,20 +198,21 @@ tooltip label {
 #custom-window-close {
     color: #f38ba8;
     font-weight: bold;
+    border-bottom: 3px solid transparent;
     padding: 0 8px;
-    margin-right: 5px;
-    border-radius: 4px;
+    margin-right: 10px;
     transition: all 0.3s ease;
 }
 
 #custom-window-close:hover {
     background: rgba(243, 139, 168, 0.3);
+    border-bottom-color: #ed8796;
     color: #ffffff;
 }
 
 #custom-window-close.hidden {
     padding: 0;
     margin: 0;
-    border: 2px solid red;
     font-size: 0;
 }
+
