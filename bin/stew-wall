@@ -28,13 +28,14 @@ apply_wallpaper() {
     local wallpaper="$1"
 
     # Preload and set current wallpaper
-    hyprctl hyprpaper preload "$wallpaper" 2>/dev/null || true
-    hyprctl hyprpaper wallpaper ",$wallpaper" 2>/dev/null
+    hyprctl hyprpaper wallpaper ", $wallpaper" 2>/dev/null
 
     # Update config for persistence
     {
-        echo "preload = $wallpaper"
-        echo "wallpaper = , $wallpaper"
+        echo "wallpaper {"
+        echo "    monitor ="
+        echo "    path = $wallpaper"
+        echo "}"
     } > "$HYPRPAPER_CONFIG"
 }
 
@@ -128,7 +129,6 @@ case "${1}" in
         readarray -t wallpapers < <(get_wallpapers)
         current_idx=$(get_index)
         restart_hyprpaper
-        apply_wallpaper "${wallpapers[$current_idx]}"
         ;;
 
     *)
