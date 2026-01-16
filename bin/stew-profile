@@ -5,8 +5,17 @@
 set -e
 
 STATE_FILE="$HOME/.cache/hypr_current_profile"
+EXTERNAL_CACHE="$HOME/.cache/hypr_external_monitor"
 LAPTOP="eDP-1"
 EXTERNAL=$(hyprctl monitors -j | jq -r '.[] | select(.name != "eDP-1") | .name' | head -n1)
+
+# If no external monitor detected but we have a cached name, use it (for unmirror)
+if [[ -z "$EXTERNAL" ]] && [[ -f "$EXTERNAL_CACHE" ]]; then
+    EXTERNAL=$(cat "$EXTERNAL_CACHE")
+elif [[ -n "$EXTERNAL" ]]; then
+    # Cache the external monitor name when we see it
+    echo "$EXTERNAL" > "$EXTERNAL_CACHE"
+fi
 
 mkdir -p "$(dirname "$STATE_FILE")"
 
@@ -32,8 +41,22 @@ swap_workspace() {
   fi
 }
 
+# Disable mirroring on external monitor
+disable_mirror() {
+    local current=$(get_current)
+    # Only disable/re-enable if currently in mirror mode
+    if [[ "$current" == "mirror" ]] && [[ -n "$EXTERNAL" ]]; then
+        # Disable and re-enable the monitor to clear mirror mode
+        hyprctl keyword monitor "$EXTERNAL,disable" >/dev/null 2>&1
+        sleep 0.2
+        hyprctl keyword monitor "$EXTERNAL,preferred,auto-right,1" >/dev/null 2>&1
+        sleep 0.1
+    fi
+}
+
 # Profile definitions
 apply_work() {
+    disable_mirror
     # Move existing workspaces to correct monitors
     hyprctl dispatch moveworkspacetomonitor 1 $EXTERNAL >/dev/null 2>&1
     hyprctl dispatch moveworkspacetomonitor 2 $LAPTOP >/dev/null 2>&1
@@ -62,6 +85,7 @@ apply_work() {
 }
 
 apply_home() {
+    disable_mirror
     # Clear workspace assignments - let workspaces float between monitors
     for i in {1..10}; do
         hyprctl keyword workspace "$i,monitor:" >/dev/null 2>&1
@@ -71,6 +95,7 @@ apply_home() {
 }
 
 apply_meet() {
+    disable_mirror
     # Move existing workspaces - personal ones to laptop
     hyprctl dispatch moveworkspacetomonitor 1 $LAPTOP >/dev/null 2>&1
     hyprctl dispatch moveworkspacetomonitor 2 $LAPTOP >/dev/null 2>&1
@@ -100,6 +125,28 @@ apply_meet() {
     echo "meet" > "$STATE_FILE"
 }
 
+apply_mirror() {
+    if [[ -z "$EXTERNAL" ]]; then
+        echo "No external monitor detected" >&2
+        exit 1
+    fi
+
+    # Clear workspace assignments
+    for i in {1..10}; do
+        hyprctl keyword workspace "$i,monitor:" >/dev/null 2>&1
+    done
+    
+    # Move all workspaces to laptop
+    for i in {1..10}; do
+        hyprctl dispatch moveworkspacetomonitor "$i" "$LAPTOP" >/dev/null 2>&1
+    done
+    
+    # Enable mirroring on external monitor
+    hyprctl keyword monitor "$EXTERNAL,preferred,auto-right,1,mirror,$LAPTOP" >/dev/null 2>&1
+    
+    echo "mirror" > "$STATE_FILE"
+}
+
 get_current() {
     [[ -f "$STATE_FILE" ]] && cat "$STATE_FILE" || echo "unknown"
 }
@@ -118,6 +165,9 @@ case "${1}" in
     meet)
         apply_meet
         ;;
+    mirror)
+        apply_mirror
+        ;;
     current)
         echo "Current profile: $(get_current)"
         ;;
@@ -126,12 +176,13 @@ case "${1}" in
         echo "  work$([ "$current" = "work" ] && echo " *")"
         echo "  home$([ "$current" = "home" ] && echo " *")"
         echo "  meet$([ "$current" = "meet" ] && echo " *")"
+        echo "  mirror$([ "$current" = "mirror" ] && echo " *")"
         ;;
     pick)
         command -v fuzzel >/dev/null || { echo "fuzzel not found" >&2; exit 1; }
 
         current=$(get_current)
-        profiles=("work" "home" "meet")
+        profiles=("work" "home" "meet" "mirror")
 
         # Build fuzzel input with current profile marked
         for profile in "${profiles[@]}"; do
@@ -146,12 +197,13 @@ case "${1}" in
                 work) apply_work ;;
                 home) apply_home ;;
                 meet) apply_meet ;;
+                mirror) apply_mirror ;;
                 *) echo "Invalid profile: $selected" >&2; exit 1 ;;
             esac
         }
         ;;
     *)
-        echo "Usage: $0 [work|home|meet|current|list|pick|swap]" >&2
+        echo "Usage: $0 [work|home|meet|mirror|current|list|pick|swap]" >&2
         exit 1
         ;;
 esac
