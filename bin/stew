@@ -33,6 +33,9 @@ case "$category" in
     wall)
         "$BIN_DIR/stew-wall" "$action" "$@"
         ;;
+    mux)
+        "$BIN_DIR/stew-mux" "$action" "$@"
+        ;;
     win)
         "$BIN_DIR/stew-win" "$action" "$@"
         ;;
@@ -43,6 +46,7 @@ case "$category" in
         echo ""
         echo "Commands:"
         echo "  idle     Idle/sleep management"
+        echo "  mux      Multiplexer session profiles"
         echo "  notify   Notification management"
         echo "  profile  Workspace/monitor profiles"
         echo "  run      Command runner"

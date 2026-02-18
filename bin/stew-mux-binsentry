@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Initialize binsentry tmux session
+
+SESSION="binsentry"
+
+if ! tmux has-session -t "$SESSION" 2>/dev/null; then
+    tmux new-session -d -s "$SESSION" -n "api" -c "/home/stephen/dev/binsentry/api"
+
+    tmux new-window -t "$SESSION:2" -n "ui" -c "/home/stephen/dev/binsentry/ui-customers"
+    tmux split-window -t "$SESSION:2" -h -c "/home/stephen/dev/binsentry/ui-customers"
+
+    tmux new-window -t "$SESSION:3" -c "$HOME"
+
+    tmux select-window -t "$SESSION:1"
+fi
+
+tmux attach-session -t "$SESSION"
