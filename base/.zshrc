@@ -72,5 +72,5 @@ source /usr/share/fzf/key-bindings.zsh
 [ -f ~/.profile ] && source ~/.profile
 
 # binsentry
-[ -f /srv/binsentry/devroot/.binsentry.profile ] && source /srv/binsentry/devroot/.binsentry.profile
+[ -f $HOME/dev/binsentry/devroot/.binsentry.profile ] && source $HOME/dev/binsentry/devroot/.binsentry.profile
 
