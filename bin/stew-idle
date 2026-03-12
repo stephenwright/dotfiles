@@ -1,20 +1,23 @@
 #!/bin/bash
 
-# Idle management for hypridle
+# Idle inhibitor using systemd-inhibit
 
 set -euo pipefail
 
-is_enabled() {
-    pgrep -x hypridle >/dev/null
+INHIBIT_WHO="stew-caffeine"
+
+is_inhibited() {
+    pgrep -f "systemd-inhibit.*--who=$INHIBIT_WHO" >/dev/null
 }
 
 toggle() {
-    if is_enabled; then
-        pkill hypridle
-        notify-send -u normal "Caffeine Mode" "Idle management disabled - staying awake" -i preferences-system-power
+    if is_inhibited; then
+        pkill -f "systemd-inhibit.*--who=$INHIBIT_WHO"
+        notify-send -u normal "stew idle" "Caffeine mode: off" -i preferences-system-power
     else
-        hypridle &
-        notify-send -u normal "Idle Management" "Idle management enabled" -i preferences-system-power
+        systemd-inhibit --what=idle --who="$INHIBIT_WHO" --why="Caffeine mode" sleep infinity &
+        disown
+        notify-send -u normal "stew idle" "Caffeine mode: on" -i preferences-system-power
     fi
 }
 
@@ -23,7 +26,7 @@ case "${1:-status}" in
         toggle
         ;;
     status)
-        is_enabled && echo "enabled" || echo "disabled"
+        is_inhibited && echo "disabled" || echo "enabled"
         ;;
     *)
         echo "Usage: $0 [toggle|status]" >&2

@@ -29,14 +29,15 @@ mkdir -p "$(dirname "$STATE_FILE")"
 # 7 - p - spotify
 
 swap_workspace() {
+  local aw am
   aw=$(hyprctl activeworkspace -j | jq -r '.id')
   am=$(hyprctl activeworkspace -j | jq -r '.monitor')
- 
+
   if [[ -n "$EXTERNAL" ]]; then
-    if [[ "$current_monitor" == "$LAPTOP" ]]; then
-      hyprctl dispatch moveworkspacetomonitor "$active_ws" "$EXTERNAL"
-    elif [[ "$current_monitor" == "$EXTERNAL" ]]; then
-      hyprctl dispatch moveworkspacetomonitor "$active_ws" "$LAPTOP"
+    if [[ "$am" == "$LAPTOP" ]]; then
+      hyprctl dispatch moveworkspacetomonitor "$aw" "$EXTERNAL"
+    elif [[ "$am" == "$EXTERNAL" ]]; then
+      hyprctl dispatch moveworkspacetomonitor "$aw" "$LAPTOP"
     fi
   fi
 }
