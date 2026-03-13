@@ -25,6 +25,10 @@ vim.opt.undofile = true
 vim.opt.signcolumn = 'yes'
 vim.opt.termguicolors = true
 vim.opt.updatetime = 250
+vim.opt.autoread = true
+vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'CursorHold' }, {
+  command = 'checktime',
+})
 
 -- Toggle word wrap with <leader>w
 vim.keymap.set("n", "<leader>w", function()
