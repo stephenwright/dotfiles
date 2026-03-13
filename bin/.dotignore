@@ -6,3 +6,5 @@
 # .config/hypr/monitors-*.conf
 # .cache/
 
+.vim/.netrwhist
+hypr/hyprpaper.conf
