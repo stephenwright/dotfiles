@@ -1,3 +1,6 @@
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
 -- leader key
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
@@ -127,6 +130,21 @@ require('lazy').setup({
         { '<leader>y', group = 'clipboard' },
       })
     end,
+  },
+
+  -- file tree
+  {
+    'nvim-tree/nvim-tree.lua',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    keys = {
+      { '<leader>t', '<cmd>NvimTreeToggle<cr>', desc = "Toggle file tree" },
+    },
+    opts = {
+      git = { enable = true },
+      renderer = {
+        highlight_git = 'name',
+      },
+    },
   },
 
   -- fuzzy finder
