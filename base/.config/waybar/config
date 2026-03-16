@@ -23,7 +23,7 @@
             "network",
             "pulseaudio",
             "custom/notifications",
-            "custom/idle-inhibit",
+            "idle_inhibitor",
             "custom/power"
         ],
 
@@ -178,13 +178,14 @@
             "tooltip-format": "Notifications"
         },
 
-        "custom/idle-inhibit": {
-            "exec": "~/bin/stew idle status | grep -q enabled && echo '󰛊' || echo '󰅶'",
-            "interval": 2,
-            "on-click": "~/bin/stew idle toggle",
-            "return-type": "",
-            "format": "{}",
-            "tooltip-format": "Toggle idle management (caffeine mode)"
+        "idle_inhibitor": {
+            "format": "{icon}",
+            "format-icons": {
+                "activated": "󰅶",
+                "deactivated": "󰛊"
+            },
+            "tooltip-format-activated": "Caffeine mode: on",
+            "tooltip-format-deactivated": "Caffeine mode: off"
         },
 
         "custom/power": {
