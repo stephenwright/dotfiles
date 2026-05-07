@@ -5,6 +5,9 @@ vim.g.loaded_netrwPlugin = 1
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
+-- workaround: neovim 0.12 async treesitter parse race condition
+vim.g._ts_force_sync_parsing = true
+
 -- options
 vim.opt.number = true
 
@@ -206,6 +209,7 @@ require('lazy').setup({
         ensure_installed = {
           'javascript', 'typescript', 'lua', 'vim', 'vimdoc', 'query',
           'go', 'python', 'html', 'css', 'json', 'yaml', 'bash', 'zig',
+          'markdown', 'markdown_inline',
         },
         sync_install = false,
         auto_install = true,
