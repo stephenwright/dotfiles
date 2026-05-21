@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# Install packages listed in packages.txt via paru.
+
+set -euo pipefail
+
+source "$(dirname "${BASH_SOURCE[0]}")/dot.conf"
+
+PACKAGES_FILE="$DOTFILES_DIR/packages.txt"
+INSTALLER="${DOT_INSTALLER:-paru}"
+DRY_RUN=false
+
+usage() {
+    cat <<EOF
+Usage: $0 [OPTIONS]
+
+Install packages listed in $PACKAGES_FILE.
+
+Options:
+  -n, --dry-run   Show what would be installed without installing
+  -l, --list      Print resolved package list and exit
+  -h, --help      Show this help
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -n|--dry-run) DRY_RUN=true; shift ;;
+        -l|--list)
+            grep -vE '^\s*(#|$)' "$PACKAGES_FILE"
+            exit 0 ;;
+        -h|--help) usage; exit 0 ;;
+        *) error "Unknown option: $1"; usage; exit 1 ;;
+    esac
+done
+
+if [[ ! -f "$PACKAGES_FILE" ]]; then
+    error "Packages file not found: $PACKAGES_FILE"
+    exit 1
+fi
+
+command -v "$INSTALLER" >/dev/null || {
+    error "$INSTALLER not found (set DOT_INSTALLER to override)"
+    exit 1
+}
+
+mapfile -t packages < <(grep -vE '^\s*(#|$)' "$PACKAGES_FILE")
+
+if [[ ${#packages[@]} -eq 0 ]]; then
+    warn "No packages listed in $PACKAGES_FILE"
+    exit 0
+fi
+
+log "installing ${#packages[@]} packages via $INSTALLER"
+if [[ "$DRY_RUN" == true ]]; then
+    printf '  %s\n' "${packages[@]}"
+    exit 0
+fi
+
+"$INSTALLER" -S --needed "${packages[@]}"
+success "packages installed"

@@ -219,3 +219,19 @@ tooltip label {
     font-size: 0;
 }
 
+/* Screen capture indicator */
+#custom-capture {
+    padding: 0 8px;
+    margin: 0 5px;
+    color: #6c7086;
+    transition: all 0.3s ease;
+}
+
+#custom-capture:hover {
+    background: rgba(243, 139, 168, 0.2);
+}
+
+#custom-capture.recording {
+    color: #f38ba8;
+}
+

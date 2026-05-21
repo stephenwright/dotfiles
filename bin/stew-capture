@@ -1,0 +1,151 @@
+#!/bin/bash
+
+# Screen-region capture (wf-recorder + slurp, gifski/ffmpeg for encoding).
+# First invocation selects a region and starts recording; second stops and
+# finalizes. Bind to a single key for a peek-like workflow.
+
+set -euo pipefail
+
+OUTPUT_DIR="${STEW_CAPTURE_DIR:-$HOME/Videos/captures}"
+STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/stew-capture"
+PID_FILE="$STATE_DIR/recorder.pid"
+META_FILE="$STATE_DIR/recorder.meta"
+FPS="${STEW_CAPTURE_FPS:-15}"
+SCALE_WIDTH="${STEW_CAPTURE_WIDTH:-720}"
+DEFAULT_FORMAT="${STEW_CAPTURE_FORMAT:-gif}"
+
+mkdir -p "$OUTPUT_DIR" "$STATE_DIR"
+
+need() {
+    command -v "$1" >/dev/null || { echo "$1 not found" >&2; exit 1; }
+}
+
+notify() {
+    if command -v notify-send >/dev/null; then
+        notify-send -a "stew capture" "stew capture" "$1"
+    else
+        echo "$1"
+    fi
+}
+
+is_recording() {
+    [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null
+}
+
+container_for() {
+    case "$1" in
+        gif|mp4) echo mp4 ;;
+        webm)    echo webm ;;
+        *) echo "unsupported format: $1" >&2; exit 1 ;;
+    esac
+}
+
+start() {
+    local format="$1"
+    need slurp
+    need wf-recorder
+
+    if is_recording; then
+        notify "Already recording (pid $(cat "$PID_FILE"))"
+        exit 1
+    fi
+
+    local region
+    region="$(slurp)" || { notify "Canceled"; exit 0; }
+
+    local ts container src
+    ts="$(date +%Y%m%d-%H%M%S)"
+    container="$(container_for "$format")"
+    src="$STATE_DIR/capture-$ts.$container"
+
+    printf '%s\n%s\n' "$src" "$format" > "$META_FILE"
+
+    setsid wf-recorder -g "$region" -f "$src" >/dev/null 2>&1 &
+    echo $! > "$PID_FILE"
+    notify "Recording ($format) — run again to stop"
+}
+
+encode_gif() {
+    local src="$1" dst="$2"
+    need gifski
+    gifski --fps "$FPS" --width "$SCALE_WIDTH" -o "$dst" "$src" >/dev/null 2>&1
+}
+
+encode_webm() {
+    # wf-recorder wrote webm directly; nothing to do.
+    mv "$1" "$2"
+}
+
+encode_mp4() {
+    mv "$1" "$2"
+}
+
+stop() {
+    if ! is_recording; then
+        rm -f "$PID_FILE" "$META_FILE"
+        notify "Not recording"
+        exit 1
+    fi
+
+    local pid src format dst
+    pid="$(cat "$PID_FILE")"
+    { read -r src; read -r format; } < "$META_FILE"
+    dst="$OUTPUT_DIR/$(basename "${src%.*}").$format"
+
+    # wf-recorder needs SIGINT to flush the container cleanly.
+    kill -INT "$pid"
+    while kill -0 "$pid" 2>/dev/null; do sleep 0.1; done
+    rm -f "$PID_FILE" "$META_FILE"
+
+    notify "Encoding $format…"
+
+    case "$format" in
+        gif)  encode_gif  "$src" "$dst"; rm -f "$src" ;;
+        mp4)  encode_mp4  "$src" "$dst" ;;
+        webm) encode_webm "$src" "$dst" ;;
+    esac
+
+    if command -v wl-copy >/dev/null; then
+        printf '%s' "$dst" | wl-copy
+    fi
+    notify "Saved $dst"
+    echo "$dst"
+}
+
+usage() {
+    cat >&2 <<EOF
+Usage: $0 [toggle|start|stop|status] [--format gif|mp4|webm]
+  toggle (default)  start if idle, stop if recording
+  start             begin recording (format applies here)
+  stop              stop and encode
+  status            print current state
+EOF
+    exit 1
+}
+
+# Parse subcommand + optional --format flag.
+sub="${1:-toggle}"
+shift || true
+format="$DEFAULT_FORMAT"
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -f|--format) format="$2"; shift 2 ;;
+        -h|--help)   usage ;;
+        *)           echo "Unknown arg: $1" >&2; usage ;;
+    esac
+done
+
+case "$sub" in
+    start)  start "$format" ;;
+    stop)   stop ;;
+    toggle) if is_recording; then stop; else start "$format"; fi ;;
+    status)
+        if is_recording; then
+            { read -r src; read -r fmt; } < "$META_FILE" 2>/dev/null || fmt="?"
+            echo "recording $fmt (pid $(cat "$PID_FILE"))"
+        else
+            echo "idle"
+        fi
+        ;;
+    *) usage ;;
+esac

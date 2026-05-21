@@ -22,6 +22,7 @@
             "battery",
             "network",
             "pulseaudio",
+            "custom/capture",
             "custom/notifications",
             "idle_inhibitor",
             "custom/power"
@@ -167,6 +168,14 @@
             "on-click": "pavucontrol",
             "on-click-right": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
             "tooltip-format": "Volume: {volume}%\nSink: {desc}"
+        },
+
+        "custom/capture": {
+            "exec-if": "command -v wf-recorder",
+            "exec": "~/.config/waybar/scripts/capture.sh",
+            "return-type": "json",
+            "interval": 1,
+            "on-click": "~/bin/stew capture toggle"
         },
 
         "custom/notifications": {

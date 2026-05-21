@@ -19,7 +19,12 @@ setopt autocd               # If only directory path is entered, cd there.
 PS1="%(#.%F{red}.%F{green})%n%f@%m%F{cyan}%21<..<%~%<<%f%# "
 
 # completion
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'       # Case insensitive tab completion
+# Tiered matchers: exact case-insensitive -> partial-word across ._- separators -> substring anywhere.
+# fzf-tab (sourced below) takes over the interactive picker and does true fuzzy on top of these.
+zstyle ':completion:*' matcher-list \
+    'm:{a-zA-Z}={A-Za-z}' \
+    'm:{a-zA-Z}={A-Za-z} r:|[._-]=* r:|=*' \
+    'm:{a-zA-Z}={A-Za-z} l:|=* r:|=*'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"         # Colored completion (different colors for dirs/files/etc)
 zstyle ':completion:*' rehash true                              # automatically find new executables in path 
 # speed up completions
@@ -68,6 +73,10 @@ export LESS=-r
 # fzf
 source /usr/share/fzf/completion.zsh
 source /usr/share/fzf/key-bindings.zsh
+
+# fzf-tab: must be sourced after compinit and after any plugin that wraps widgets
+[ -f /usr/share/zsh/plugins/fzf-tab/fzf-tab.plugin.zsh ] && \
+    source /usr/share/zsh/plugins/fzf-tab/fzf-tab.plugin.zsh
 
 [ -f ~/.profile ] && source ~/.profile
 

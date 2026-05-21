@@ -12,6 +12,9 @@ action="$2"
 shift 2 2>/dev/null || true
 
 case "$category" in
+    capture)
+        "$BIN_DIR/stew-capture" "$action" "$@"
+        ;;
     notify)
         "$BIN_DIR/stew-notify" "$action" "$@"
         ;;
@@ -42,6 +45,7 @@ case "$category" in
         echo "Usage: stew <command> <action> [options]"
         echo ""
         echo "Commands:"
+        echo "  capture  Screen-region capture to GIF"
         echo "  mux      Multiplexer session profiles"
         echo "  notify   Notification management"
         echo "  profile  Workspace/monitor profiles"

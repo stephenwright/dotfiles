@@ -19,11 +19,13 @@ usage() {
     echo "  backup     Save system configs to repo (system → base)"
     echo "  restore    Apply repo configs to system (base → system)"
     echo "  diff       Show differences between base and system"
+    echo "  install    Install packages listed in packages.txt"
     echo ""
     echo "Examples:"
     echo "  $0 backup"
     echo "  $0 restore --backup"
     echo "  $0 diff"
+    echo "  $0 install --dry-run"
     echo ""
     echo "Run '$0 <command> --help' for command-specific options"
 }
@@ -47,6 +49,9 @@ case "$COMMAND" in
         ;;
     diff)
         exec "$SCRIPT_DIR/dot-diff" "$@"
+        ;;
+    install)
+        exec "$SCRIPT_DIR/dot-install" "$@"
         ;;
     help|--help|-h)
         usage
