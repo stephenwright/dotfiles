@@ -1,0 +1,65 @@
+# Packages required by this dotfiles repo.
+# Install with: dot install
+# Anything paru understands (official repos + AUR) is fine here.
+
+# core shell + dev tools
+zsh
+fzf
+fzf-tab
+lazygit
+neovim
+git
+jq
+curl
+
+# hyprland compositor + ecosystem
+hyprland
+hyprpaper
+hypridle
+hyprlock
+hyprshot
+
+# status bar / launcher / notifications
+waybar
+fuzzel
+mako
+libnotify
+
+# capture & screenshots
+slurp
+wf-recorder
+gifski
+ffmpeg
+wl-clipboard
+
+# audio (pipewire stack)
+pipewire
+pipewire-audio
+pipewire-pulse
+wireplumber
+pavucontrol
+
+# session helpers
+brightnessctl
+playerctl
+networkmanager
+network-manager-applet
+nm-connection-editor
+gnome-system-monitor
+
+# terminals + file manager
+alacritty
+ghostty
+nautilus
+
+# fonts / icons
+ttf-sourcecodepro-nerd
+papirus-icon-theme
+
+# apps
+firefox
+google-chrome
+slack-desktop
+discord
+spotify-launcher
+zed
