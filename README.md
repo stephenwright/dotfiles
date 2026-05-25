@@ -8,13 +8,14 @@ Clean, simple dotfiles management with a unified command interface.
 
 ```
 .
-├── archive/     # old dotfiles
-├── backup/      # backups created by `restore --backup`
-├── base/        # config files, structure mirrors $HOME
-├── bin/         # scripts
-│   ├── dot      # tool for managing dotfiles
-│   └── stew     # tool for managing environment
-└── README.md    # this file
+├── archive/      # old dotfiles
+├── backup/       # backups created by `restore --backup`
+├── base/         # config files, structure mirrors $HOME
+├── bin/          # scripts
+│   ├── dot       # tool for managing dotfiles
+│   └── stew      # tool for managing environment
+├── packages.txt  # packages installed by `dot install`
+└── README.md     # this file
 ```
 
 Note: These scripts assume repo is checked out to ~/dotfiles
@@ -23,7 +24,9 @@ Note: These scripts assume repo is checked out to ~/dotfiles
 
 ```bash
 # first time setup
-cd ~/dotfiles/bin && ./dot restore
+cd ~/dotfiles/bin
+./dot install    # install packages listed in packages.txt
+./dot restore    # apply configs from repo to ~
 
 # Show differences between base and system
 dot diff
@@ -39,9 +42,12 @@ dot restore --backup
 ## stew: desktop environment management tool
 
 ```bash
-stew notify     # show recent notifications
-stew session    # lock/logout/restart/shutdown
-stew space      # Apply workspace profile
+stew capture    # Screen-region capture to GIF
+stew mux        # Multiplexer session profiles
+stew notify     # Show recent notifications
+stew profile    # Apply workspace/monitor profile
+stew run        # Command runner
+stew session    # Lock/logout/restart/shutdown
 stew wall       # Change wallpaper
 stew win        # Find and manage windows
 ```

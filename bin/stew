@@ -27,9 +27,6 @@ case "$category" in
     run)
         "$BIN_DIR/stew-run" "$action" "$@"
         ;;
-    space)
-        "$BIN_DIR/stew-space" "$action" "$@"
-        ;;
     wall)
         "$BIN_DIR/stew-wall" "$action" "$@"
         ;;
