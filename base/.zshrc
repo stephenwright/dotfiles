@@ -75,10 +75,12 @@ source /usr/share/fzf/completion.zsh
 source /usr/share/fzf/key-bindings.zsh
 
 # fzf-tab: must be sourced after compinit and after any plugin that wraps widgets
-[ -f /usr/share/zsh/plugins/fzf-tab/fzf-tab.plugin.zsh ] && \
-    source /usr/share/zsh/plugins/fzf-tab/fzf-tab.plugin.zsh
+#[ -f /usr/share/zsh/plugins/fzf-tab/fzf-tab.plugin.zsh ] && source /usr/share/zsh/plugins/fzf-tab/fzf-tab.plugin.zsh
 
 [ -f ~/.profile ] && source ~/.profile
+
+# nvm
+[ -f /usr/share/nvm/init-nvm.sh ] && source /usr/share/nvm/init-nvm.sh
 
 # binsentry
 [ -f $HOME/dev/binsentry/devroot/.binsentry.profile ] && source $HOME/dev/binsentry/devroot/.binsentry.profile
