@@ -199,25 +199,19 @@ require('lazy').setup({
 
   -- code analysis
   {
-    'nvim-treesitter/nvim-treesitter',
+    'romus204/tree-sitter-manager.nvim',
     name = 'treesitter',
-    build = ':TSUpdate',
-    event = 'BufReadPre',
+    lazy = false,
     config = function()
-      ---@diagnostic disable-next-line: missing-fields
-      require'nvim-treesitter.configs'.setup {
+      require('tree-sitter-manager').setup({
         ensure_installed = {
           'javascript', 'typescript', 'lua', 'vim', 'vimdoc', 'query',
           'go', 'python', 'html', 'css', 'json', 'yaml', 'bash', 'zig',
           'markdown', 'markdown_inline',
         },
-        sync_install = false,
         auto_install = true,
-        highlight = {
-          enable = true,
-          additional_vim_regex_highlighting = false,
-        },
-      }
+        highlight = true,
+      })
     end,
   },
 
