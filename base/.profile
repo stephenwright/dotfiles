@@ -11,9 +11,10 @@ pathmunge () {
 
 export EDITOR=$(command -v nvim || command -v vim || command -v vi)
 
-# add ~/bin to path if it's present
+# additional bin paths, if it's present
 [ -d "$HOME/bin" ] && pathmunge "$HOME/bin"
 [ -d "$HOME/.local/bin" ] && pathmunge "$HOME/.local/bin"
+[ -d "$HOME/.cargo/bin" ] && pathmunge "$HOME/.cargo/bin"
 
 # aliases
 [ -f ~/.aliases ] && source ~/.aliases
