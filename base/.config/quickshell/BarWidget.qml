@@ -27,7 +27,19 @@ MouseArea {
         color: root.fg
     }
 
-    onWheel: event => event.angleDelta.y > 0 ? root.scrolledUp() : root.scrolledDown()
+    // accumulate to full 120-unit notches; hi-res wheels/touchpads send many small events
+    property real wheelAcc: 0
+    onWheel: event => {
+        wheelAcc += event.angleDelta.y
+        while (wheelAcc >= 120) {
+            wheelAcc -= 120
+            root.scrolledUp()
+        }
+        while (wheelAcc <= -120) {
+            wheelAcc += 120
+            root.scrolledDown()
+        }
+    }
 
     SequentialAnimation {
         running: root.blink

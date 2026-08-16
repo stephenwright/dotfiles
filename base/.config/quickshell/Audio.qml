@@ -1,53 +1,42 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
+import Quickshell.Services.Pipewire
 
 BarWidget {
     id: root
 
-    property int volume: 0
-    property bool muted: false
+    readonly property var sink: Pipewire.defaultAudioSink
+    readonly property real vol: sink?.audio?.volume ?? 0
+    readonly property bool muted: sink?.audio?.muted ?? false
+    readonly property int volPct: Math.round(vol * 100)
 
-    text: (muted ? "󰝟" : volume >= 67 ? "󰕾" : volume >= 34 ? "󰖀" : "󰕿") + " " + volume + "%"
+    PwObjectTracker {
+        objects: root.sink ? [root.sink] : []
+    }
+
+    text: (muted ? "󰝟" : volPct >= 67 ? "󰕾" : volPct >= 34 ? "󰖀" : "󰕿") + " " + volPct + "%"
     fg: muted ? Theme.overlay0 : Theme.text
 
-    Process {
-        id: proc
-        command: ["sh", "-c", "wpctl get-volume @DEFAULT_AUDIO_SINK@"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const m = this.text.match(/Volume: ([0-9.]+)( \[MUTED\])?/)
-                if (m) {
-                    root.volume = Math.round(parseFloat(m[1]) * 100)
-                    root.muted = !!m[2]
-                }
-            }
+    function setVol(v) {
+        if (sink?.audio)
+            sink.audio.volume = Math.max(0, Math.min(1, v))
+    }
+
+    onScrolledUp: setVol(vol + 0.05)
+    onScrolledDown: setVol(vol - 0.05)
+    onClicked: event => {
+        if (event.button === Qt.RightButton) {
+            if (sink?.audio)
+                sink.audio.muted = !sink.audio.muted
+        } else if (event.button === Qt.MiddleButton) {
+            Quickshell.execDetached(["pavucontrol"])
+        } else {
+            panel.toggle()
         }
     }
-    Timer {
-        interval: 1000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: proc.running = true
-    }
-    Timer {
-        id: refresh
-        interval: 150
-        onTriggered: proc.running = true
-    }
 
-    function run(cmd) {
-        Quickshell.execDetached(["sh", "-c", cmd])
-        refresh.start()
-    }
-
-    onScrolledUp: run("wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+")
-    onScrolledDown: run("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-")
-    onClicked: event => {
-        if (event.button === Qt.RightButton)
-            run("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")
-        else
-            Quickshell.execDetached(["pavucontrol"])
+    SoundPanel {
+        id: panel
+        anchorItem: root
     }
 }
