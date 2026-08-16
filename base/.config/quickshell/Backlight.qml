@@ -7,7 +7,7 @@ BarWidget {
 
     property int percent: 0
 
-    text: (percent >= 66 ? "󰃠" : percent >= 33 ? "󰃟" : "󰃞") + " " + percent + "%"
+    text: "󰍹"
 
     Process {
         id: proc
@@ -36,5 +36,15 @@ BarWidget {
 
     onScrolledUp: set("5%+")
     onScrolledDown: set("5%-")
-    onClicked: event => set(event.button === Qt.RightButton ? "100%" : "50%")
+    onClicked: event => {
+        if (event.button === Qt.RightButton)
+            set("100%")
+        else
+            panel.toggle()
+    }
+
+    DisplayPanel {
+        id: panel
+        anchorItem: root
+    }
 }
