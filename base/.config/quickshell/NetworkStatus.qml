@@ -1,50 +1,38 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
+import Quickshell.Networking
 
 BarWidget {
     id: root
 
-    property string kind: ""
-    property string label: ""
+    readonly property var wifiDev: Networking.devices.values.find(d => d.type === DeviceType.Wifi) ?? null
+    readonly property var wiredDev: Networking.devices.values.find(d => d.type === DeviceType.Wired) ?? null
+    readonly property var wifiNet: wifiDev ? (wifiDev.networks.values.find(n => n.connected) ?? null) : null
 
-    text: kind === "wifi" ? "󰤨 " + label
-        : kind === "ethernet" ? "󰈀 " + label
-        : "󰤭 Disconnected"
-    fg: kind === "wifi" ? Theme.green
-        : kind === "ethernet" ? Theme.sapphire
+    readonly property real signal: {
+        if (!wifiNet)
+            return 0
+        const s = wifiNet.signalStrength
+        return s > 1 ? s / 100 : s
+    }
+
+    text: wifiNet ? (signal >= 0.75 ? "󰤨" : signal >= 0.5 ? "󰤥" : signal >= 0.25 ? "󰤢" : "󰤟")
+        : wiredDev && wiredDev.connected ? "󰈀"
+        : !Networking.wifiEnabled ? "󰤮"
+        : "󰤭"
+    fg: wifiNet ? Theme.green
+        : wiredDev && wiredDev.connected ? Theme.sapphire
         : Theme.red
 
-    Process {
-        id: proc
-        command: ["sh", "-c",
-            "nmcli -t -f NAME,TYPE,DEVICE connection show --active | grep -vE ':(loopback|tun|bridge):' | head -1"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const line = this.text.trim()
-                if (!line) {
-                    root.kind = ""
-                    root.label = ""
-                    return
-                }
-                const p = line.split(":")
-                if (p[1] && p[1].includes("wireless")) {
-                    root.kind = "wifi"
-                    root.label = p[0]
-                } else {
-                    root.kind = "ethernet"
-                    root.label = p[2] || p[0]
-                }
-            }
-        }
-    }
-    Timer {
-        interval: 5000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: proc.running = true
+    onClicked: event => {
+        if (event.button === Qt.RightButton)
+            Quickshell.execDetached(["nm-connection-editor"])
+        else
+            panel.toggle()
     }
 
-    onClicked: Quickshell.execDetached(["nm-connection-editor"])
+    NetworkPanel {
+        id: panel
+        anchorItem: root
+    }
 }
