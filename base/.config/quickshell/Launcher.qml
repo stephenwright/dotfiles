@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
 
@@ -13,7 +14,9 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "launcher"
-    WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    // OnDemand, not Exclusive: an exclusive-keyboard layer pins focus to itself,
+    // which keeps HyprlandFocusGrab from ever clearing on outside clicks
+    WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     property var category: null
     property var results: []
@@ -126,6 +129,13 @@ PanelWindow {
         function toggle(): void {
             root.toggle()
         }
+    }
+
+    HyprlandFocusGrab {
+        // wait for the surface to be mapped, or the grab registers nothing
+        active: root.visible && root.backingWindowVisible
+        windows: [root]
+        onCleared: root.hide()
     }
 
     Rectangle {
