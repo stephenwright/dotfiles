@@ -21,6 +21,7 @@ hyprshot
 
 # status bar / launcher / notifications
 waybar
+quickshell
 fuzzel
 mako
 libnotify
