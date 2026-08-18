@@ -234,7 +234,9 @@ PanelWindow {
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.right: parent.right
                         anchors.rightMargin: 12
-                        text: row.modelData.children ? "›" : row.modelData.entry ? "app" : "stew"
+                        text: row.modelData.children ? "›"
+                            : row.modelData.entry ? "app"
+                            : row.modelData.run ? "qs" : "stew"
                         font.pixelSize: row.modelData.children ? 13 : 11
                         color: row.modelData.children ? Theme.mauve : Theme.overlay0
                     }

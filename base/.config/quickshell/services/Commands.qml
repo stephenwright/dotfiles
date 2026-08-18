@@ -47,9 +47,9 @@ Singleton {
             ]
         },
         {
-            name: "Mux",
+            name: "Windows",
             children: [
-                { name: "binsentry", cmd: "alacritty -e ~/bin/stew mux binsentry" }
+                { name: "switch", cmd: "~/bin/stew win" }
             ]
         }
     ]
