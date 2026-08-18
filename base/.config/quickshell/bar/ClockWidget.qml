@@ -19,6 +19,6 @@ BarWidget {
 
     CalendarPanel {
         id: panel
-        clockItem: root
+        anchorItem: root
     }
 }

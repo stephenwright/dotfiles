@@ -1,17 +1,18 @@
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Networking
-import Quickshell.Wayland
 import "../lib"
 import "../services"
 
-PanelWindow {
+Panel {
     id: root
 
-    property Item anchorItem
-    property double lastCleared: 0
+    panelName: "network"
+    panelWidth: 320
+    contentSpacing: 8
+    wantsKeyboard: true
+
     property var pendingNet: null
     property var lastAttempt: null
     property string errorMsg: ""
@@ -39,6 +40,12 @@ PanelWindow {
         return l.slice(0, 8)
     }
 
+    onOpening: {
+        pendingNet = null
+        errorMsg = ""
+        refreshIp()
+    }
+
     onCurDevChanged: if (visible) refreshIp()
 
     function refreshIp() {
@@ -58,20 +65,6 @@ PanelWindow {
         }
     }
 
-    visible: false
-    implicitWidth: 320
-    implicitHeight: content.implicitHeight + 28
-    color: "transparent"
-
-    anchors {
-        top: true
-        left: true
-    }
-    exclusiveZone: 0
-    WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "network"
-    WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
-
     // live scan results only while the panel is open
     onVisibleChanged: {
         if (wifiDev)
@@ -89,26 +82,6 @@ PanelWindow {
     function sigIcon(n) {
         const s = norm(n.signalStrength)
         return s >= 0.75 ? "󰤨" : s >= 0.5 ? "󰤥" : s >= 0.25 ? "󰤢" : "󰤟"
-    }
-
-    function toggle() {
-        if (visible) {
-            visible = false
-            return
-        }
-        // a click that dismissed the grab also reaches the widget on release;
-        // don't let it immediately reopen the panel
-        if (Date.now() - lastCleared < 300)
-            return
-        const win = anchorItem.QsWindow.window
-        screen = win.screen
-        const r = anchorItem.mapToItem(null, 0, 0)
-        const x = r.x + anchorItem.width / 2 - implicitWidth / 2
-        margins.left = Math.round(Math.max(8, Math.min(x, screen.width - implicitWidth - 8)))
-        pendingNet = null
-        errorMsg = ""
-        refreshIp()
-        visible = true
     }
 
     function activate(n) {
@@ -143,172 +116,148 @@ PanelWindow {
         }
     }
 
-    HyprlandFocusGrab {
-        // wait for the surface to be mapped, or the grab registers nothing
-        active: root.visible && root.backingWindowVisible
-        windows: [root]
-        onCleared: {
-            root.lastCleared = Date.now()
-            root.visible = false
+    Item {
+        width: parent.width
+        height: 18
+
+        BarText {
+            anchors.verticalCenter: parent.verticalCenter
+            text: "Wi-Fi"
+            font.pixelSize: 11
+            color: Theme.overlay1
+        }
+
+        MouseArea {
+            id: wifiSwitch
+            width: 34
+            height: 16
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.right: gearBtn.left
+            anchors.rightMargin: 10
+            onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
+
+            Rectangle {
+                anchors.fill: parent
+                color: Networking.wifiEnabled ? Qt.alpha(Theme.mauve, 0.4) : Theme.surface1
+
+                Rectangle {
+                    width: 12
+                    height: 12
+                    anchors.verticalCenter: parent.verticalCenter
+                    x: Networking.wifiEnabled ? parent.width - width - 2 : 2
+                    color: Networking.wifiEnabled ? Theme.mauve : Theme.overlay0
+                }
+            }
+        }
+
+        MouseArea {
+            id: gearBtn
+            width: 20
+            height: parent.height
+            anchors.right: parent.right
+            hoverEnabled: true
+            onClicked: {
+                root.close()
+                Quickshell.execDetached(["nm-connection-editor"])
+            }
+            BarText {
+                anchors.centerIn: parent
+                text: ""
+                font.pixelSize: 12
+                color: gearBtn.containsMouse ? Theme.mauve : Theme.overlay1
+            }
         }
     }
 
-    Rectangle {
-        anchors.fill: parent
-        color: Theme.base
-        border.color: Theme.mauve
-        border.width: 2
+    // current connection: ip + device (wired falls back to device name)
+    BarText {
+        visible: root.curDev != null
+        width: parent.width
+        elide: Text.ElideRight
+        text: (root.curDev === root.wiredDev ? "󰈀 " : "󰩟 ")
+            + (root.ipAddr || "…")
+            + (root.curDev ? " on " + root.curDev.name : "")
+        font.pixelSize: 11
+        color: Theme.subtext0
+    }
 
-        Column {
-            id: content
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 8
+    BarText {
+        visible: root.knownNets.length > 0
+        text: "Known"
+        font.pixelSize: 11
+        color: Theme.overlay1
+    }
 
-            Item {
-                width: parent.width
-                height: 18
+    Repeater {
+        model: root.knownNets
 
-                BarText {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "Wi-Fi"
-                    font.pixelSize: 11
-                    color: Theme.overlay1
-                }
+        NetRow { panel: root }
+    }
 
-                MouseArea {
-                    id: wifiSwitch
-                    width: 34
-                    height: 16
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.right: gearBtn.left
-                    anchors.rightMargin: 10
-                    onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
+    BarText {
+        visible: root.otherNets.length > 0
+        text: "Other"
+        font.pixelSize: 11
+        color: Theme.overlay1
+    }
 
-                    Rectangle {
-                        anchors.fill: parent
-                        color: Networking.wifiEnabled ? Qt.alpha(Theme.mauve, 0.4) : Theme.surface1
+    Repeater {
+        model: root.otherNets
 
-                        Rectangle {
-                            width: 12
-                            height: 12
-                            anchors.verticalCenter: parent.verticalCenter
-                            x: Networking.wifiEnabled ? parent.width - width - 2 : 2
-                            color: Networking.wifiEnabled ? Theme.mauve : Theme.overlay0
-                        }
+        NetRow { panel: root }
+    }
+
+    BarText {
+        visible: !Networking.wifiEnabled
+        text: "Wi-Fi is off"
+        color: Theme.overlay0
+    }
+
+    Column {
+        visible: root.pendingNet != null
+        width: parent.width
+        spacing: 4
+
+        BarText {
+            text: "password for " + (root.pendingNet ? root.pendingNet.name : "")
+            font.pixelSize: 11
+            color: Theme.overlay1
+        }
+
+        Rectangle {
+            width: parent.width
+            height: 26
+            color: Theme.surface0
+            border.color: Theme.surface1
+            border.width: 1
+
+            TextInput {
+                id: pskInput
+                anchors.fill: parent
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+                verticalAlignment: TextInput.AlignVCenter
+                echoMode: TextInput.Password
+                color: Theme.text
+                font.family: Theme.fontFamily
+                font.pixelSize: 13
+                clip: true
+                onAccepted: root.submitPsk()
+
+                Keys.onPressed: event => {
+                    if (event.key === Qt.Key_Escape) {
+                        root.pendingNet = null
+                        event.accepted = true
                     }
                 }
-
-                MouseArea {
-                    id: gearBtn
-                    width: 20
-                    height: parent.height
-                    anchors.right: parent.right
-                    hoverEnabled: true
-                    onClicked: {
-                        root.visible = false
-                        Quickshell.execDetached(["nm-connection-editor"])
-                    }
-                    BarText {
-                        anchors.centerIn: parent
-                        text: ""
-                        font.pixelSize: 12
-                        color: gearBtn.containsMouse ? Theme.mauve : Theme.overlay1
-                    }
-                }
-            }
-
-            // current connection: ip + device (wired falls back to device name)
-            BarText {
-                visible: root.curDev != null
-                width: parent.width
-                elide: Text.ElideRight
-                text: (root.curDev === root.wiredDev ? "󰈀 " : "󰩟 ")
-                    + (root.ipAddr || "…")
-                    + (root.curDev ? " on " + root.curDev.name : "")
-                font.pixelSize: 11
-                color: Theme.subtext0
-            }
-
-            BarText {
-                visible: root.knownNets.length > 0
-                text: "Known"
-                font.pixelSize: 11
-                color: Theme.overlay1
-            }
-
-            Repeater {
-                model: root.knownNets
-
-                NetRow { panel: root }
-            }
-
-            BarText {
-                visible: root.otherNets.length > 0
-                text: "Other"
-                font.pixelSize: 11
-                color: Theme.overlay1
-            }
-
-            Repeater {
-                model: root.otherNets
-
-                NetRow { panel: root }
-            }
-
-            BarText {
-                visible: !Networking.wifiEnabled
-                text: "Wi-Fi is off"
-                color: Theme.overlay0
-            }
-
-            Column {
-                visible: root.pendingNet != null
-                width: parent.width
-                spacing: 4
-
-                BarText {
-                    text: "password for " + (root.pendingNet ? root.pendingNet.name : "")
-                    font.pixelSize: 11
-                    color: Theme.overlay1
-                }
-
-                Rectangle {
-                    width: parent.width
-                    height: 26
-                    color: Theme.surface0
-                    border.color: Theme.surface1
-                    border.width: 1
-
-                    TextInput {
-                        id: pskInput
-                        anchors.fill: parent
-                        anchors.leftMargin: 8
-                        anchors.rightMargin: 8
-                        verticalAlignment: TextInput.AlignVCenter
-                        echoMode: TextInput.Password
-                        color: Theme.text
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 13
-                        clip: true
-                        onAccepted: root.submitPsk()
-
-                        Keys.onPressed: event => {
-                            if (event.key === Qt.Key_Escape) {
-                                root.pendingNet = null
-                                event.accepted = true
-                            }
-                        }
-                    }
-                }
-            }
-
-            BarText {
-                visible: root.errorMsg !== ""
-                text: root.errorMsg
-                font.pixelSize: 11
-                color: Theme.red
             }
         }
+    }
+
+    BarText {
+        visible: root.errorMsg !== ""
+        text: root.errorMsg
+        font.pixelSize: 11
+        color: Theme.red
     }
 }

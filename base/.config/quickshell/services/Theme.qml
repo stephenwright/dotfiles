@@ -35,4 +35,8 @@ Singleton {
     readonly property string fontFamily: "SauceCodePro Nerd Font Mono"
     readonly property int fontSize: 12
     readonly property int padding: 8
+
+    function levelColor(frac, warn, crit) {
+        return frac >= crit ? red : frac >= warn ? yellow : mauve
+    }
 }
