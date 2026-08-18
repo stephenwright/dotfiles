@@ -19,11 +19,11 @@ Singleton {
         {
             name: "Session",
             children: [
-                { name: "lock", cmd: "~/bin/stew session lock" },
-                { name: "logout", cmd: "~/bin/stew session logout" },
-                { name: "sleep", cmd: "~/bin/stew session sleep" },
-                { name: "restart", cmd: "~/bin/stew session restart" },
-                { name: "shutdown", cmd: "~/bin/stew session shutdown" }
+                { name: "lock", run: () => Session.lock() },
+                { name: "logout", run: () => Session.logout() },
+                { name: "sleep", run: () => Session.suspend() },
+                { name: "restart", run: () => Session.reboot() },
+                { name: "shutdown", run: () => Session.shutdown() }
             ]
         },
         {
