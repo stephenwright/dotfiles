@@ -12,5 +12,6 @@ ShellRoot {
 
     Launcher {}
     ClipboardPanel {}
+    WallpaperPanel {}
     NotificationPopups {}
 }

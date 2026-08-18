@@ -1,33 +1,15 @@
 #!/bin/bash
 
-# Wallpaper management script for Hyprland
+# Wallpaper management for Hyprland; the picker UI lives in quickshell
 
 set -e
 
 WALLPAPER_DIR="$HOME/wallpaper"
 HYPRPAPER_CONFIG="$HOME/.config/hypr/hyprpaper.conf"
-STATE_FILE="$HOME/.cache/wallpaper_state"
 
-mkdir -p "$(dirname "$STATE_FILE")"
-
-# Get wallpapers and current index
-get_wallpapers() {
-    find "$WALLPAPER_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) | sort
-}
-
-get_index() {
-    [[ -f "$STATE_FILE" ]] && cat "$STATE_FILE" || echo "0"
-}
-
-set_index() {
-    echo "$1" > "$STATE_FILE"
-}
-
-# Apply wallpaper
 apply_wallpaper() {
     local wallpaper="$1"
 
-    # Preload and set current wallpaper
     hyprctl hyprpaper wallpaper ", $wallpaper" 2>/dev/null
 
     # Update config for persistence
@@ -39,100 +21,33 @@ apply_wallpaper() {
     } > "$HYPRPAPER_CONFIG"
 }
 
-# Restart hyprpaper
-restart_hyprpaper() {
-    pkill hyprpaper 2>/dev/null || true
-    hyprpaper >/dev/null 2>&1 &
-}
-
-# Main logic
 case "${1}" in
-    next|prev)
-        readarray -t wallpapers < <(get_wallpapers)
-        [[ ${#wallpapers[@]} -eq 0 ]] && { echo "No wallpapers found in $WALLPAPER_DIR" >&2; exit 1; }
-
-        current_idx=$(get_index)
-        if [[ "$1" == "prev" ]]; then
-            new_idx=$(( (current_idx - 1 + ${#wallpapers[@]}) % ${#wallpapers[@]} ))
-        else
-            new_idx=$(( (current_idx + 1) % ${#wallpapers[@]} ))
-        fi
-
-        set_index "$new_idx"
-        apply_wallpaper "${wallpapers[$new_idx]}"
-        ;;
-
     current)
-        readarray -t wallpapers < <(get_wallpapers)
-        [[ ${#wallpapers[@]} -eq 0 ]] && { echo "No wallpapers found" >&2; exit 1; }
-        current_idx=$(get_index)
-        echo "${wallpapers[$current_idx]}"
-        ;;
-
-    list)
-        readarray -t wallpapers < <(get_wallpapers)
-        current_idx=$(get_index)
-        for i in "${!wallpapers[@]}"; do
-            marker=""
-            [[ $i -eq $current_idx ]] && marker=" *"
-            echo "  $(basename "${wallpapers[$i]}")$marker"
-        done
-        ;;
-
-    pick)
-        command -v fuzzel >/dev/null || { echo "fuzzel not found" >&2; exit 1; }
-
-        readarray -t wallpapers < <(get_wallpapers)
-        [[ ${#wallpapers[@]} -eq 0 ]] && { echo "No wallpapers found" >&2; exit 1; }
-
-        current_idx=$(get_index)
-        for i in "${!wallpapers[@]}"; do
-            marker=""
-            [[ $i -eq $current_idx ]] && marker=" *"
-            echo "$(basename "${wallpapers[$i]}")$marker"
-        done | fuzzel --dmenu --prompt="Wallpaper: " | {
-            read -r selected || exit 0
-            selected=${selected% *}
-
-            for i in "${!wallpapers[@]}"; do
-                if [[ "$(basename "${wallpapers[$i]}")" == "$selected" ]]; then
-                    set_index "$i"
-                    apply_wallpaper "${wallpapers[$i]}"
-                    exit 0
-                fi
-            done
-            echo "Wallpaper not found: $selected" >&2
-            exit 1
-        }
+        path=$(awk -F' = ' '$1 ~ /path/ { print $2 }' "$HYPRPAPER_CONFIG")
+        echo "${path/#\~/$HOME}"
         ;;
 
     set)
-        [[ -z "$2" ]] && { echo "Usage: $0 set <filename>" >&2; exit 1; }
+        [[ -z "$2" ]] && { echo "Usage: $0 set <file>" >&2; exit 1; }
 
-        readarray -t wallpapers < <(get_wallpapers)
-        target_file="$WALLPAPER_DIR/$2"
-        [[ ! -f "$target_file" ]] && target_file="$2"
+        target_file="${2/#\~/$HOME}"
+        [[ ! -f "$target_file" ]] && target_file="$WALLPAPER_DIR/$2"
         [[ ! -f "$target_file" ]] && { echo "Wallpaper not found: $2" >&2; exit 1; }
 
-        for i in "${!wallpapers[@]}"; do
-            if [[ "${wallpapers[$i]}" == "$target_file" ]]; then
-                set_index "$i"
-                apply_wallpaper "$target_file"
-                exit 0
-            fi
-        done
-        echo "Wallpaper not in managed directory: $2" >&2
-        exit 1
+        apply_wallpaper "$target_file"
+        ;;
+
+    pick)
+        exec qs ipc call panels toggle wallpaper
         ;;
 
     reload)
-        readarray -t wallpapers < <(get_wallpapers)
-        current_idx=$(get_index)
-        restart_hyprpaper
+        pkill hyprpaper 2>/dev/null || true
+        hyprpaper >/dev/null 2>&1 &
         ;;
 
     *)
-        echo "Usage: $0 [next|prev|current|list|pick|set <file>|reload]"
+        echo "Usage: $0 [current|set <file>|pick|reload]"
         exit 1
         ;;
 esac

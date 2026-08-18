@@ -53,7 +53,11 @@ Singleton {
         const mon = Hyprland.focusedMonitor
         const p = list.find(x => mon && x.anchorItem
             && x.anchorItem.QsWindow.window.screen.name === mon.name) ?? list[0]
-        toggle(p)
+        // anchored panels go through the manager; standalone windows self-manage
+        if (typeof p.openAt === "function")
+            toggle(p)
+        else
+            p.toggle()
     }
 
     IpcHandler {

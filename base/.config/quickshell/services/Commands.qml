@@ -37,9 +37,7 @@ Singleton {
         {
             name: "Wallpaper",
             children: [
-                { name: "next", cmd: "~/bin/stew wall next" },
-                { name: "prev", cmd: "~/bin/stew wall prev" },
-                { name: "pick", cmd: "~/bin/stew wall pick" }
+                { name: "pick", run: () => PanelManager.toggleByName("wallpaper") }
             ]
         },
         {
