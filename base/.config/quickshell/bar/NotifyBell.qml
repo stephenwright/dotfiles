@@ -1,43 +1,25 @@
 import QtQuick
-import Quickshell
-import Quickshell.Io
 import "../lib"
 import "../services"
+import "../panels"
 
 BarWidget {
     id: root
 
-    property bool dnd: false
+    readonly property int count: Notifs.tracked.values.length
 
-    text: dnd ? "" : "󰂚"
-    fg: dnd ? Theme.red : Theme.sapphire
-
-    Process {
-        id: proc
-        command: ["sh", "-c", "makoctl mode 2>/dev/null | grep -qw dnd && echo dnd || echo normal"]
-        stdout: StdioCollector {
-            onStreamFinished: root.dnd = this.text.trim() === "dnd"
-        }
-    }
-    Timer {
-        interval: 1000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: proc.running = true
-    }
-    Timer {
-        id: refresh
-        interval: 300
-        onTriggered: proc.running = true
-    }
+    text: Notifs.dnd ? "" : count > 0 ? "󱅫" : "󰂚"
+    fg: Notifs.dnd ? Theme.red : Theme.sapphire
 
     onClicked: event => {
-        if (event.button === Qt.RightButton) {
-            Quickshell.execDetached(["sh", "-c", "~/bin/stew notify dnd"])
-            refresh.start()
-        } else {
-            Quickshell.execDetached(["sh", "-c", "~/bin/stew notify menu"])
-        }
+        if (event.button === Qt.RightButton)
+            Notifs.toggleDnd()
+        else
+            panel.toggle()
+    }
+
+    NotifyPanel {
+        id: panel
+        anchorItem: root
     }
 }

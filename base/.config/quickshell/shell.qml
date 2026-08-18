@@ -11,4 +11,5 @@ ShellRoot {
     }
 
     Launcher {}
+    NotificationPopups {}
 }

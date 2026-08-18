@@ -29,8 +29,9 @@ Singleton {
         {
             name: "Notifications",
             children: [
-                { name: "do not disturb", cmd: "~/bin/stew notify dnd" },
-                { name: "history", cmd: "~/bin/stew notify menu" }
+                { name: "do not disturb", run: () => Notifs.toggleDnd() },
+                { name: "history", run: () => PanelManager.toggleByName("notifications") },
+                { name: "dismiss all", run: () => Notifs.dismissAll() }
             ]
         },
         {

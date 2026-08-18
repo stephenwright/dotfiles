@@ -121,6 +121,8 @@ PanelWindow {
         hide()
         if (e.entry)
             e.entry.execute()
+        else if (e.run)
+            e.run()
         else
             Quickshell.execDetached(["sh", "-c", e.cmd])
     }

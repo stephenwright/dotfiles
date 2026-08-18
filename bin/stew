@@ -15,9 +15,6 @@ case "$category" in
     capture)
         "$BIN_DIR/stew-capture" "$action" "$@"
         ;;
-    notify)
-        "$BIN_DIR/stew-notify" "$action" "$@"
-        ;;
     profile)
         "$BIN_DIR/stew-profile" "$action" "$@"
         ;;
@@ -44,7 +41,6 @@ case "$category" in
         echo "Commands:"
         echo "  capture  Screen-region capture to GIF"
         echo "  mux      Multiplexer session profiles"
-        echo "  notify   Notification management"
         echo "  profile  Workspace/monitor profiles"
         echo "  run      Command runner"
         echo "  session  Lock/logout/sleep/restart/shutdown"
