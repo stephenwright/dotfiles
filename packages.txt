@@ -25,6 +25,7 @@ quickshell
 fuzzel
 mako
 libnotify
+power-profiles-daemon
 
 # capture & screenshots
 slurp
