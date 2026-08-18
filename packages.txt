@@ -20,6 +20,8 @@ hyprlock
 hyprshot
 
 # status bar / launcher / notifications
+# waybar + mako retired in favor of quickshell (configs in archive/, keep
+# packages until the replacement is proven); fuzzel still backs stew-run/win/profile
 waybar
 quickshell
 fuzzel
