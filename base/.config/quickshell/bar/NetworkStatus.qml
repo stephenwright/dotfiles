@@ -1,6 +1,9 @@
 import QtQuick
 import Quickshell
 import Quickshell.Networking
+import "../lib"
+import "../services"
+import "../panels"
 
 BarWidget {
     id: root

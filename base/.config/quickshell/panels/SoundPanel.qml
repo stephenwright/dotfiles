@@ -3,6 +3,8 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 import Quickshell.Wayland
+import "../lib"
+import "../services"
 
 PanelWindow {
     id: root

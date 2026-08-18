@@ -4,6 +4,8 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Networking
 import Quickshell.Wayland
+import "../lib"
+import "../services"
 
 PanelWindow {
     id: root

@@ -2,6 +2,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
+import "../lib"
+import "../services"
 
 Row {
     height: parent.height

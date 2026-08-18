@@ -1,6 +1,8 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import "../lib"
+import "../services"
 
 BarWidget {
     id: root

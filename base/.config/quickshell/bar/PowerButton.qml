@@ -1,4 +1,6 @@
 import Quickshell
+import "../lib"
+import "../services"
 
 BarWidget {
     text: "⏻"

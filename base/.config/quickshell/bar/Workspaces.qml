@@ -1,5 +1,7 @@
 import QtQuick
 import Quickshell.Hyprland
+import "../lib"
+import "../services"
 
 Row {
     height: parent.height

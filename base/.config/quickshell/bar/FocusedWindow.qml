@@ -1,6 +1,8 @@
 import QtQuick
 import Quickshell.Hyprland
 import Quickshell.Wayland
+import "../lib"
+import "../services"
 
 Row {
     id: root

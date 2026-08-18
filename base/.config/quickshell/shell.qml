@@ -1,5 +1,7 @@
 //@ pragma UseQApplication
 import Quickshell
+import "bar"
+import "panels"
 
 ShellRoot {
     Variants {

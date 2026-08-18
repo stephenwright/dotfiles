@@ -1,4 +1,7 @@
 import Quickshell
+import "../lib"
+import "../services"
+import "../panels"
 
 BarWidget {
     id: root

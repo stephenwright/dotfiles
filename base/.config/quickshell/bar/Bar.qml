@@ -1,5 +1,7 @@
 import QtQuick
 import Quickshell
+import "../lib"
+import "../services"
 
 PanelWindow {
     id: root
