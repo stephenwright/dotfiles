@@ -21,6 +21,10 @@ PanelWindow {
     // per-panel refresh hook; runs just before the panel becomes visible
     signal opening()
 
+    // key events not handled by the base (Escape closes); only fires
+    // when wantsKeyboard is set
+    signal keyPressed(var event)
+
     visible: false
     implicitWidth: panelWidth
     implicitHeight: content.implicitHeight + 28
@@ -57,6 +61,8 @@ PanelWindow {
         margins.left = Math.round(Math.max(8, Math.min(x, screen.width - implicitWidth - 8)))
         opening()
         visible = true
+        if (wantsKeyboard)
+            scope.forceActiveFocus()
     }
 
     HyprlandFocusGrab {
@@ -74,11 +80,26 @@ PanelWindow {
         border.color: Theme.mauve
         border.width: 2
 
-        Column {
-            id: content
+        FocusScope {
+            id: scope
             anchors.fill: parent
-            anchors.margins: 12
-            spacing: root.contentSpacing
+            focus: true
+
+            Keys.onPressed: event => {
+                if (event.key === Qt.Key_Escape) {
+                    PanelManager.close(root)
+                    event.accepted = true
+                } else {
+                    root.keyPressed(event)
+                }
+            }
+
+            Column {
+                id: content
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: root.contentSpacing
+            }
         }
     }
 }

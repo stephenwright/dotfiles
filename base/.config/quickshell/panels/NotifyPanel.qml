@@ -9,6 +9,30 @@ Panel {
     panelName: "notifications"
     panelWidth: 420
     contentSpacing: 8
+    wantsKeyboard: true
+
+    property int selected: 0
+    property int expandedIndex: -1
+
+    onOpening: {
+        selected = 0
+        expandedIndex = -1
+    }
+
+    onKeyPressed: event => {
+        if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab || event.key === Qt.Key_J)
+            selected = Math.min(selected + 1, list.count - 1)
+        else if (event.key === Qt.Key_Up || event.key === Qt.Key_K)
+            selected = Math.max(selected - 1, 0)
+        else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)
+            expandedIndex = expandedIndex === selected ? -1 : selected
+        else if (event.key === Qt.Key_Delete || event.key === Qt.Key_X)
+            list.model[selected]?.dismiss()
+        else
+            return
+        list.positionViewAtIndex(Math.max(0, selected), ListView.Contain)
+        event.accepted = true
+    }
 
     Item {
         width: parent.width
@@ -76,6 +100,7 @@ Panel {
     }
 
     ListView {
+        id: list
         width: parent.width
         height: Math.min(480, contentHeight)
         visible: Notifs.tracked.values.length > 0
@@ -86,15 +111,17 @@ Panel {
         delegate: Item {
             id: row
             required property var modelData
+            required property int index
 
-            property bool expanded: false
+            readonly property bool expanded: root.expandedIndex === index
+            readonly property bool isSelected: root.selected === index
 
             width: ListView.view.width
             height: inner.implicitHeight + 12
 
             Rectangle {
                 anchors.fill: parent
-                color: rowArea.containsMouse ? Qt.alpha(Theme.surface0, 0.7) : "transparent"
+                color: row.isSelected ? Qt.alpha(Theme.surface0, 0.7) : "transparent"
                 border.color: Qt.alpha(Notifs.urgencyColor(row.modelData.urgency), 0.5)
                 border.width: 1
             }
@@ -103,7 +130,8 @@ Panel {
                 id: rowArea
                 anchors.fill: parent
                 hoverEnabled: true
-                onClicked: row.expanded = !row.expanded
+                onEntered: root.selected = row.index
+                onClicked: root.expandedIndex = row.expanded ? -1 : row.index
             }
 
             Column {
