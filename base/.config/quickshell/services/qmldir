@@ -3,3 +3,4 @@ singleton Commands Commands.qml
 singleton PanelManager PanelManager.qml
 singleton Notifs Notifs.qml
 singleton Session Session.qml
+singleton Fuzzy Fuzzy.qml

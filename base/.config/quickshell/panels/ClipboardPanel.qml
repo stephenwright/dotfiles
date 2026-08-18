@@ -6,21 +6,22 @@ import Quickshell.Wayland
 import "../lib"
 import "../services"
 
+// cliphist history picker, launcher-style centered window
 PanelWindow {
     id: root
 
     visible: false
-    implicitWidth: 560
+    implicitWidth: 640
     implicitHeight: 44 + results.length * 30
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "launcher"
+    WlrLayershell.namespace: "clipboard"
     // OnDemand, not Exclusive: an exclusive-keyboard layer pins focus to itself,
     // which keeps HyprlandFocusGrab from ever clearing on outside clicks
     WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
-    property var category: null
+    property var entries: []
     property var results: []
     property int selected: 0
 
@@ -29,9 +30,10 @@ PanelWindow {
     }
 
     function show() {
-        category = null
         input.text = ""
-        refilter()
+        entries = []
+        results = []
+        listProc.running = true
         visible = true
         input.forceActiveFocus()
     }
@@ -40,54 +42,38 @@ PanelWindow {
         visible = false
     }
 
-    function descend(cat) {
-        category = cat
-        input.text = ""
-        refilter()
-    }
-
-    function back() {
-        category = null
-        input.text = ""
-        refilter()
-    }
-
-    function appEntries() {
-        return DesktopEntries.applications.values
-            .filter(a => !a.noDisplay)
-            .map(a => ({ name: a.name, entry: a }))
-            .sort((a, b) => a.name.localeCompare(b.name))
-    }
-
-    function categoryList() {
-        return [{ name: "Apps", children: appEntries() }].concat(Commands.categories)
-    }
-
-    // flatten to searchable leaves; stew entries get a category-prefixed label
-    // (no Array.flatMap — Qt's JS engine doesn't implement it)
-    function leaves(cats) {
-        const out = []
-        for (const c of cats)
-            for (const e of c.children)
-                out.push(Object.assign({}, e, {
-                    label: c.name === "Apps" ? e.name : c.name + ": " + e.name
-                }))
-        return out
+    Process {
+        id: listProc
+        command: ["cliphist", "list"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const out = []
+                for (const line of this.text.split("\n")) {
+                    const tab = line.indexOf("\t")
+                    if (tab < 0)
+                        continue
+                    const preview = line.slice(tab + 1)
+                    out.push({
+                        id: line.slice(0, tab),
+                        preview: preview,
+                        isImage: preview.startsWith("[[ binary data")
+                    })
+                }
+                root.entries = out
+                root.refilter()
+            }
+        }
     }
 
     function refilter() {
         const q = input.text.trim()
-        if (!q) {
-            results = category ? category.children.slice(0, 12) : categoryList()
-        } else {
-            const scope = leaves(category ? [category] : categoryList())
-            results = scope
-                .map(e => ({ e, s: Fuzzy.score(q, e.label) }))
+        results = (!q ? entries
+            : entries
+                .map(e => ({ e, s: Fuzzy.score(q, e.preview) }))
                 .filter(x => x.s >= 0)
                 .sort((a, b) => b.s - a.s)
-                .slice(0, 12)
                 .map(x => x.e)
-        }
+        ).slice(0, 15)
         selected = 0
     }
 
@@ -95,21 +81,12 @@ PanelWindow {
         const e = results[selected]
         if (!e)
             return
-        if (e.children) {
-            descend(e)
-            return
-        }
         hide()
-        if (e.entry)
-            e.entry.execute()
-        else if (e.run)
-            e.run()
-        else
-            Quickshell.execDetached(["sh", "-c", e.cmd])
+        Quickshell.execDetached(["sh", "-c", "cliphist decode " + e.id + " | wl-copy"])
     }
 
     IpcHandler {
-        target: "launcher"
+        target: "clipboard"
 
         function toggle(): void {
             root.toggle()
@@ -137,21 +114,10 @@ PanelWindow {
                 width: parent.width
                 height: 40
 
-                BarText {
-                    id: breadcrumb
-                    visible: root.category !== null
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.left: parent.left
-                    anchors.leftMargin: 12
-                    text: root.category ? root.category.name + " ›" : ""
-                    color: Theme.mauve
-                    font.pixelSize: 15
-                }
-
                 TextInput {
                     id: input
                     anchors.fill: parent
-                    anchors.leftMargin: root.category ? breadcrumb.width + 20 : 12
+                    anchors.leftMargin: 12
                     anchors.rightMargin: 12
                     verticalAlignment: TextInput.AlignVCenter
                     color: Theme.text
@@ -163,9 +129,7 @@ PanelWindow {
 
                     Keys.onPressed: event => {
                         if (event.key === Qt.Key_Escape) {
-                            root.category ? root.back() : root.hide()
-                        } else if (event.key === Qt.Key_Backspace && !input.text && root.category) {
-                            root.back()
+                            root.hide()
                         } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
                             root.selected = Math.min(root.selected + 1, root.results.length - 1)
                         } else if (event.key === Qt.Key_Up) {
@@ -181,7 +145,7 @@ PanelWindow {
                     BarText {
                         visible: !input.text
                         anchors.verticalCenter: parent.verticalCenter
-                        text: root.category ? "search…" : "search everything…"
+                        text: "clipboard history…"
                         color: Theme.overlay0
                         font.pixelSize: 15
                     }
@@ -226,17 +190,13 @@ PanelWindow {
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.left: parent.left
                         anchors.leftMargin: 12
-                        text: row.modelData.label ?? row.modelData.name
-                        font.pixelSize: 13
-                        color: row.index === root.selected ? Theme.mauve : Theme.text
-                    }
-                    BarText {
-                        anchors.verticalCenter: parent.verticalCenter
                         anchors.right: parent.right
                         anchors.rightMargin: 12
-                        text: row.modelData.children ? "›" : row.modelData.entry ? "app" : "stew"
-                        font.pixelSize: row.modelData.children ? 13 : 11
-                        color: row.modelData.children ? Theme.mauve : Theme.overlay0
+                        elide: Text.ElideRight
+                        text: (row.modelData.isImage ? "󰋩 image · " : "")
+                            + row.modelData.preview.trim()
+                        font.pixelSize: 13
+                        color: row.index === root.selected ? Theme.mauve : Theme.text
                     }
                 }
             }

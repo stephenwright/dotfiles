@@ -26,6 +26,7 @@ fuzzel
 mako
 libnotify
 power-profiles-daemon
+cliphist
 
 # capture & screenshots
 slurp

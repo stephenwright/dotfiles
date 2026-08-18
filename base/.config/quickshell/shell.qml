@@ -11,5 +11,6 @@ ShellRoot {
     }
 
     Launcher {}
+    ClipboardPanel {}
     NotificationPopups {}
 }
