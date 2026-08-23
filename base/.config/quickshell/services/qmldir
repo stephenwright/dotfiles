@@ -1,4 +1,5 @@
 singleton Theme Theme.qml
+singleton Hypr Hypr.qml
 singleton Commands Commands.qml
 singleton PanelManager PanelManager.qml
 singleton Notifs Notifs.qml

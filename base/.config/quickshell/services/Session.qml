@@ -10,7 +10,7 @@ Singleton {
     }
 
     function logout() {
-        Quickshell.execDetached(["hyprctl", "dispatch", "exit"])
+        Hypr.dispatch("exit", "hl.dsp.exit()")
     }
 
     function suspend() {

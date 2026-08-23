@@ -23,7 +23,7 @@ PanelWindow {
         Row {
             anchors.left: parent.left
             height: parent.height
-            spacing: 4
+            spacing: 10
 
             Workspaces {}
             FocusedWindow {}
@@ -36,7 +36,7 @@ PanelWindow {
         Row {
             anchors.right: parent.right
             height: parent.height
-            spacing: 4
+            spacing: 8
 
             Tray {}
             SysInfo {}

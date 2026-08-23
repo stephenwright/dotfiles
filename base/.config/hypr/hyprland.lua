@@ -5,14 +5,11 @@ local c = require("colors")
 local mainMod     = "SUPER"
 local terminal    = "alacritty"
 local fileManager = "nautilus"
-local launcher    = "fuzzel"
 
-------------------
----- MONITORS ----
-------------------
+-- monitors
 
 hl.monitor({ output = "eDP-1", mode = "1920x1200", position = "auto",       scale = 1 })
-hl.monitor({ output = "DP-3",  mode = "preferred", position = "auto-right", scale = 1 })
+hl.monitor({ output = "DP-3",  mode = "preferred", position = "auto-center-right", scale = 1 })
 hl.monitor({ output = "",      mode = "preferred", position = "auto",       scale = "auto" })
 
 -------------------
@@ -22,9 +19,9 @@ hl.monitor({ output = "",      mode = "preferred", position = "auto",       scal
 hl.on("hyprland.start", function()
     hl.exec_cmd("hyprpaper")
     hl.exec_cmd("hypridle")
-    hl.exec_cmd("waybar")
-    hl.exec_cmd("mako")
-    hl.exec_cmd("nm-applet --indicator")
+    hl.exec_cmd("qs")
+    hl.exec_cmd("wl-paste --type text --watch cliphist store")
+    hl.exec_cmd("wl-paste --type image --watch cliphist store")
 
     hl.exec_cmd("[workspace 1 silent] " .. terminal)
     hl.exec_cmd("[workspace 2 silent] firefox")
@@ -170,21 +167,26 @@ hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace" })
 -- launch things
 hl.bind(mainMod .. " + RETURN", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + E",      hl.dsp.exec_cmd(fileManager))
-hl.bind(mainMod .. " + D",      hl.dsp.exec_cmd(launcher))
+hl.bind(mainMod .. " + D",      hl.dsp.exec_cmd("qs ipc call launcher toggle"))
 hl.bind(mainMod .. " + R",      hl.dsp.exec_cmd("~/bin/stew run"))
+hl.bind(mainMod .. " + SPACE",  hl.dsp.exec_cmd("qs ipc call launcher toggle"))
 
 -- session
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"))
-hl.bind(mainMod .. " + X", hl.dsp.exec_cmd("~/bin/stew session"))
+hl.bind(mainMod .. " + X", hl.dsp.exec_cmd("qs ipc call panels toggle session"))
 
 -- screenshot
-hl.bind("PRINT", hl.dsp.exec_cmd("hyprshot --mode region --clipboard-only --freeze"))
+hl.bind("PRINT",           hl.dsp.exec_cmd("hyprshot --mode region --clipboard-only --freeze"))
+hl.bind("SHIFT + PRINT",   hl.dsp.exec_cmd("~/bin/stew capture toggle"))
 
--- mako
-hl.bind(mainMod .. " + PERIOD", hl.dsp.exec_cmd("makoctl dismiss -a"))
+-- notifications
+hl.bind(mainMod .. " + PERIOD", hl.dsp.exec_cmd("qs ipc call notifs dismissAll"))
 
--- waybar
-hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("pkill waybar && waybar"))
+-- clipboard history (SUPER+V is togglefloating)
+hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("qs ipc call clipboard toggle"))
+
+-- quickshell
+hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("pkill -x qs; qs"))
 
 -- windows
 hl.bind(mainMod .. " + TAB", hl.dsp.window.cycle_next())
@@ -252,7 +254,7 @@ hl.window_rule({
 -- zoom — main meeting tiles; popups/toolbars float
 hl.window_rule({
     name  = "zoom-float-popups",
-    match = { class = "^(zoom|Zoom|zoom-us)$", title = "^(?!Zoom Meeting$|Zoom Workplace$).*$" },
+    match = { class = "^(zoom|Zoom|zoom-us)$", title = "^(?!Zoom Meeting$|Zoom Workplace$|Meeting$).*$" },
     float = true,
 })
 hl.window_rule({

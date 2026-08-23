@@ -7,7 +7,7 @@ import "../services"
 
 Row {
     height: parent.height
-    spacing: 8
+    spacing: 16
 
     Repeater {
         model: SystemTray.items

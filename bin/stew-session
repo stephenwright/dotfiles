@@ -10,7 +10,12 @@ lock_session() {
 }
 
 logout_session() {
-    hyprctl dispatch exit
+    # legacy dispatch strings don't work under the lua config provider
+    if [[ "$(hyprctl systeminfo | awk '/^configProvider:/{print $2}')" == "lua" ]]; then
+        hyprctl dispatch 'hl.dsp.exit()'
+    else
+        hyprctl dispatch exit
+    fi
 }
 
 sleep_session() {

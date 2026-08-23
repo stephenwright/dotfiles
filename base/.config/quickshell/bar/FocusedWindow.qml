@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell.Hyprland
 import Quickshell.Wayland
 import "../lib"
 import "../services"
@@ -21,7 +20,7 @@ Row {
 
         onClicked: event => {
             if (event.button === Qt.MiddleButton)
-                Hyprland.dispatch("forcekillactive")
+                Hypr.dispatch("forcekillactive", "hl.dsp.window.kill()")
             else
                 root.activeWin?.close()
         }

@@ -4,6 +4,12 @@
 
 set -e
 
+# legacy dispatch strings don't work under the lua config provider
+hypr_is_lua() {
+    [[ -z "$HYPR_PROVIDER" ]] && HYPR_PROVIDER=$(hyprctl systeminfo | awk '/^configProvider:/{print $2}')
+    [[ "$HYPR_PROVIDER" == "lua" ]]
+}
+
 # Find and manage windows
 find_window() {
     command -v jq >/dev/null || { echo "jq not found" >&2; exit 1; }
@@ -25,12 +31,20 @@ find_window() {
 
     case $exit_code in
         0)  # Normal Enter - switch to workspace
-            hyprctl dispatch workspace "$ws" >/dev/null 2>&1
+            if hypr_is_lua; then
+                hyprctl dispatch "hl.dsp.focus({workspace = $ws})" >/dev/null 2>&1
+            else
+                hyprctl dispatch workspace "$ws" >/dev/null 2>&1
+            fi
             ;;
         10) # Alt+Enter (custom-1) - move window here
             local current_ws
             current_ws=$(hyprctl activeworkspace -j | jq -r .id)
-            hyprctl dispatch movetoworkspacesilent "$current_ws,address:$addr" >/dev/null 2>&1
+            if hypr_is_lua; then
+                hyprctl dispatch "hl.dsp.window.move({workspace = $current_ws, follow = false, window = \"address:$addr\"})" >/dev/null 2>&1
+            else
+                hyprctl dispatch movetoworkspacesilent "$current_ws,address:$addr" >/dev/null 2>&1
+            fi
             ;;
     esac
 }

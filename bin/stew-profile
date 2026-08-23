@@ -19,6 +19,48 @@ fi
 
 mkdir -p "$(dirname "$STATE_FILE")"
 
+# hyprctl keyword and legacy dispatch strings don't work under the lua
+# config provider; these helpers pick the matching syntax.
+hypr_is_lua() {
+    [[ -z "$HYPR_PROVIDER" ]] && HYPR_PROVIDER=$(hyprctl systeminfo | awk '/^configProvider:/{print $2}')
+    [[ "$HYPR_PROVIDER" == "lua" ]]
+}
+
+move_ws_to_monitor() { # <workspace> <monitor>
+    if hypr_is_lua; then
+        hyprctl dispatch "hl.dsp.workspace.move({workspace = $1, monitor = \"$2\"})" >/dev/null 2>&1
+    else
+        hyprctl dispatch moveworkspacetomonitor "$1" "$2" >/dev/null 2>&1
+    fi
+}
+
+set_ws_rule() { # <workspace> <monitor, empty to clear>
+    if hypr_is_lua; then
+        hyprctl eval "hl.workspace_rule({workspace = \"$1\", monitor = \"$2\"})" >/dev/null 2>&1
+    else
+        hyprctl keyword workspace "$1,monitor:$2" >/dev/null 2>&1
+    fi
+}
+
+enable_monitor() { # <output> [mirror-of]
+    local mirror=""
+    if hypr_is_lua; then
+        [[ -n "${2:-}" ]] && mirror=", mirror = \"$2\""
+        hyprctl eval "hl.monitor({output = \"$1\", mode = \"preferred\", position = \"auto-right\", scale = 1$mirror})" >/dev/null 2>&1
+    else
+        [[ -n "${2:-}" ]] && mirror=",mirror,$2"
+        hyprctl keyword monitor "$1,preferred,auto-right,1$mirror" >/dev/null 2>&1
+    fi
+}
+
+disable_monitor() { # <output>
+    if hypr_is_lua; then
+        hyprctl eval "hl.monitor({output = \"$1\", disabled = true})" >/dev/null 2>&1
+    else
+        hyprctl keyword monitor "$1,disable" >/dev/null 2>&1
+    fi
+}
+
 # workspaces, p=primary, e=external when available
 # 1 - e - term
 # 2 - p - firefox
@@ -35,9 +77,9 @@ swap_workspace() {
 
   if [[ -n "$EXTERNAL" ]]; then
     if [[ "$am" == "$LAPTOP" ]]; then
-      hyprctl dispatch moveworkspacetomonitor "$aw" "$EXTERNAL"
+      move_ws_to_monitor "$aw" "$EXTERNAL"
     elif [[ "$am" == "$EXTERNAL" ]]; then
-      hyprctl dispatch moveworkspacetomonitor "$aw" "$LAPTOP"
+      move_ws_to_monitor "$aw" "$LAPTOP"
     fi
   fi
 }
@@ -48,9 +90,9 @@ disable_mirror() {
     # Only disable/re-enable if currently in mirror mode
     if [[ "$current" == "mirror" ]] && [[ -n "$EXTERNAL" ]]; then
         # Disable and re-enable the monitor to clear mirror mode
-        hyprctl keyword monitor "$EXTERNAL,disable" >/dev/null 2>&1
+        disable_monitor "$EXTERNAL"
         sleep 0.2
-        hyprctl keyword monitor "$EXTERNAL,preferred,auto-right,1" >/dev/null 2>&1
+        enable_monitor "$EXTERNAL"
         sleep 0.1
     fi
 }
@@ -59,28 +101,28 @@ disable_mirror() {
 apply_work() {
     disable_mirror
     # Move existing workspaces to correct monitors
-    hyprctl dispatch moveworkspacetomonitor 1 $EXTERNAL >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 2 $LAPTOP >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 3 $EXTERNAL >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 4 $EXTERNAL >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 5 $LAPTOP >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 6 $LAPTOP >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 7 $LAPTOP >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 8 $EXTERNAL >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 9 $EXTERNAL >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 10 $EXTERNAL >/dev/null 2>&1
+    move_ws_to_monitor 1 "$EXTERNAL"
+    move_ws_to_monitor 2 "$LAPTOP"
+    move_ws_to_monitor 3 "$EXTERNAL"
+    move_ws_to_monitor 4 "$EXTERNAL"
+    move_ws_to_monitor 5 "$LAPTOP"
+    move_ws_to_monitor 6 "$LAPTOP"
+    move_ws_to_monitor 7 "$LAPTOP"
+    move_ws_to_monitor 8 "$EXTERNAL"
+    move_ws_to_monitor 9 "$EXTERNAL"
+    move_ws_to_monitor 10 "$EXTERNAL"
 
     # Set workspace rules for future workspaces
-    hyprctl keyword workspace "1,monitor:$EXTERNAL" >/dev/null 2>&1
-    hyprctl keyword workspace "2,monitor:$LAPTOP" >/dev/null 2>&1
-    hyprctl keyword workspace "3,monitor:$EXTERNAL" >/dev/null 2>&1
-    hyprctl keyword workspace "4,monitor:$EXTERNAL" >/dev/null 2>&1
-    hyprctl keyword workspace "5,monitor:$LAPTOP" >/dev/null 2>&1
-    hyprctl keyword workspace "6,monitor:$LAPTOP" >/dev/null 2>&1
-    hyprctl keyword workspace "7,monitor:$LAPTOP" >/dev/null 2>&1
-    hyprctl keyword workspace "8,monitor:$EXTERNAL" >/dev/null 2>&1
-    hyprctl keyword workspace "9,monitor:$EXTERNAL" >/dev/null 2>&1
-    hyprctl keyword workspace "10,monitor:$EXTERNAL" >/dev/null 2>&1
+    set_ws_rule 1 "$EXTERNAL"
+    set_ws_rule 2 "$LAPTOP"
+    set_ws_rule 3 "$EXTERNAL"
+    set_ws_rule 4 "$EXTERNAL"
+    set_ws_rule 5 "$LAPTOP"
+    set_ws_rule 6 "$LAPTOP"
+    set_ws_rule 7 "$LAPTOP"
+    set_ws_rule 8 "$EXTERNAL"
+    set_ws_rule 9 "$EXTERNAL"
+    set_ws_rule 10 "$EXTERNAL"
 
     echo "work" > "$STATE_FILE"
 }
@@ -89,7 +131,7 @@ apply_home() {
     disable_mirror
     # Clear workspace assignments - let workspaces float between monitors
     for i in {1..10}; do
-        hyprctl keyword workspace "$i,monitor:" >/dev/null 2>&1
+        set_ws_rule "$i" ""
     done
 
     echo "home" > "$STATE_FILE"
@@ -98,30 +140,30 @@ apply_home() {
 apply_meet() {
     disable_mirror
     # Move existing workspaces - personal ones to laptop
-    hyprctl dispatch moveworkspacetomonitor 1 $LAPTOP >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 2 $LAPTOP >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 3 $LAPTOP >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 4 $LAPTOP >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 5 $LAPTOP >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 6 $LAPTOP >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 7 $LAPTOP >/dev/null 2>&1
+    move_ws_to_monitor 1 "$LAPTOP"
+    move_ws_to_monitor 2 "$LAPTOP"
+    move_ws_to_monitor 3 "$LAPTOP"
+    move_ws_to_monitor 4 "$LAPTOP"
+    move_ws_to_monitor 5 "$LAPTOP"
+    move_ws_to_monitor 6 "$LAPTOP"
+    move_ws_to_monitor 7 "$LAPTOP"
 
     # Move meeting workspaces to external display
-    hyprctl dispatch moveworkspacetomonitor 8 $EXTERNAL >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 9 $EXTERNAL >/dev/null 2>&1
-    hyprctl dispatch moveworkspacetomonitor 10 $EXTERNAL >/dev/null 2>&1
+    move_ws_to_monitor 8 "$EXTERNAL"
+    move_ws_to_monitor 9 "$EXTERNAL"
+    move_ws_to_monitor 10 "$EXTERNAL"
 
     # Set workspace rules for future workspaces
-    hyprctl keyword workspace "1,monitor:$LAPTOP" >/dev/null 2>&1
-    hyprctl keyword workspace "2,monitor:$LAPTOP" >/dev/null 2>&1
-    hyprctl keyword workspace "3,monitor:$LAPTOP" >/dev/null 2>&1
-    hyprctl keyword workspace "4,monitor:$LAPTOP" >/dev/null 2>&1
-    hyprctl keyword workspace "5,monitor:$LAPTOP" >/dev/null 2>&1
-    hyprctl keyword workspace "6,monitor:$LAPTOP" >/dev/null 2>&1
-    hyprctl keyword workspace "7,monitor:$LAPTOP" >/dev/null 2>&1
-    hyprctl keyword workspace "8,monitor:$EXTERNAL" >/dev/null 2>&1
-    hyprctl keyword workspace "9,monitor:$EXTERNAL" >/dev/null 2>&1
-    hyprctl keyword workspace "10,monitor:$EXTERNAL" >/dev/null 2>&1
+    set_ws_rule 1 "$LAPTOP"
+    set_ws_rule 2 "$LAPTOP"
+    set_ws_rule 3 "$LAPTOP"
+    set_ws_rule 4 "$LAPTOP"
+    set_ws_rule 5 "$LAPTOP"
+    set_ws_rule 6 "$LAPTOP"
+    set_ws_rule 7 "$LAPTOP"
+    set_ws_rule 8 "$EXTERNAL"
+    set_ws_rule 9 "$EXTERNAL"
+    set_ws_rule 10 "$EXTERNAL"
 
     echo "meet" > "$STATE_FILE"
 }
@@ -134,17 +176,17 @@ apply_mirror() {
 
     # Clear workspace assignments
     for i in {1..10}; do
-        hyprctl keyword workspace "$i,monitor:" >/dev/null 2>&1
+        set_ws_rule "$i" ""
     done
-    
+
     # Move all workspaces to laptop
     for i in {1..10}; do
-        hyprctl dispatch moveworkspacetomonitor "$i" "$LAPTOP" >/dev/null 2>&1
+        move_ws_to_monitor "$i" "$LAPTOP"
     done
-    
+
     # Enable mirroring on external monitor
-    hyprctl keyword monitor "$EXTERNAL,preferred,auto-right,1,mirror,$LAPTOP" >/dev/null 2>&1
-    
+    enable_monitor "$EXTERNAL" "$LAPTOP"
+
     echo "mirror" > "$STATE_FILE"
 }
 

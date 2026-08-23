@@ -5,7 +5,7 @@ import "../services"
 
 Row {
     height: parent.height
-    spacing: 2
+    spacing: 4
 
     Repeater {
         model: Hyprland.workspaces
@@ -20,7 +20,8 @@ Row {
             height: parent ? parent.height : 0
             hoverEnabled: true
 
-            onClicked: Hyprland.dispatch("workspace " + modelData.id)
+            onClicked: Hypr.dispatch("workspace " + modelData.id,
+                                     "hl.dsp.focus({workspace = " + modelData.id + "})")
 
             Rectangle {
                 anchors.fill: parent
