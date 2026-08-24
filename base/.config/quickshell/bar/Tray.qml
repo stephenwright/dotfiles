@@ -10,6 +10,7 @@ Row {
 
     height: parent.height
     spacing: 16
+    rightPadding: Theme.barSpacing
 
     Repeater {
         model: SystemTray.items

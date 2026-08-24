@@ -40,12 +40,17 @@ PanelWindow {
             spacing: Theme.barSpacing
 
             Tray { id: tray }
-            Rectangle {
+            Row {
                 visible: tray.count > 0
-                width: 1
-                height: 14
-                anchors.verticalCenter: parent.verticalCenter
-                color: Theme.surface1
+                height: parent.height
+                leftPadding: Theme.barSpacing
+                rightPadding: Theme.barSpacing
+                Rectangle {
+                    width: 1
+                    height: 14
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: Theme.surface1
+                }
             }
             Capture {}
             Display {}
