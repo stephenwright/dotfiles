@@ -148,7 +148,7 @@ PanelWindow {
                     anchors.leftMargin: 12
                     text: root.category ? root.category.name + " ›" : ""
                     color: Theme.mauve
-                    font.pixelSize: 15
+                    font.pixelSize: Theme.fontSizeLarge
                 }
 
                 TextInput {
@@ -159,7 +159,7 @@ PanelWindow {
                     verticalAlignment: TextInput.AlignVCenter
                     color: Theme.text
                     font.family: Theme.fontFamily
-                    font.pixelSize: 15
+                    font.pixelSize: Theme.fontSizeLarge
                     clip: true
 
                     onTextChanged: root.refilter()
@@ -186,7 +186,7 @@ PanelWindow {
                         anchors.verticalCenter: parent.verticalCenter
                         text: root.category ? "search…" : "search everything…"
                         color: Theme.overlay0
-                        font.pixelSize: 15
+                        font.pixelSize: Theme.fontSizeLarge
                     }
                 }
 
@@ -230,7 +230,7 @@ PanelWindow {
                         anchors.left: parent.left
                         anchors.leftMargin: 12
                         text: row.modelData.label ?? row.modelData.name
-                        font.pixelSize: 13
+                        font.pixelSize: Theme.fontSizeLarge
                         color: row.index === root.selected ? Theme.mauve : Theme.text
                     }
                     BarText {
@@ -240,7 +240,7 @@ PanelWindow {
                         text: row.modelData.children ? "›"
                             : row.modelData.entry ? "app"
                             : row.modelData.run ? "qs" : "stew"
-                        font.pixelSize: row.modelData.children ? 13 : 11
+                        font.pixelSize: Theme.fontSizeLarge
                         color: row.modelData.children ? Theme.mauve : Theme.overlay0
                     }
                 }

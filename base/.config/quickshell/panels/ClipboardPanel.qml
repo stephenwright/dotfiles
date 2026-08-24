@@ -195,7 +195,7 @@ PanelWindow {
                         elide: Text.ElideRight
                         text: (row.modelData.isImage ? "󰋩 image · " : "")
                             + row.modelData.preview.trim()
-                        font.pixelSize: 13
+                        font.pixelSize: Theme.fontSize
                         color: row.index === root.selected ? Theme.mauve : Theme.text
                     }
                 }

@@ -7,6 +7,7 @@ Singleton {
     // font
     readonly property string fontFamily: "SauceCodePro Nerd Font Mono"
 
+    readonly property int fontSizeLarge: 16   // when you want a little more
     readonly property int fontSize: 14        // BarText default
     readonly property int fontSizeSmall: 12   // headers, labels
     readonly property int fontSizeHint: 10    // right-aligned hints/status
