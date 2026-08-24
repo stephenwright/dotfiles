@@ -3,15 +3,17 @@ import Quickshell
 import Quickshell.Io
 import "../lib"
 import "../services"
-import "../panels"
 
+// recording indicator only: hidden when idle, red ⏺ while recording, click stops.
+// Start recording / take screenshots from the Display panel (or PRINT / stew capture).
 BarWidget {
     id: root
 
     property bool recording: false
 
+    visible: recording
     text: "⏺"
-    fg: recording ? Theme.red : Theme.overlay0
+    fg: Theme.red
 
     Process {
         id: proc
@@ -33,22 +35,8 @@ BarWidget {
         onTriggered: proc.running = true
     }
 
-    function pollSoon() {
-        refresh.start()
-    }
-
-    // recording: click stops immediately; idle: open the capture panel
     onClicked: {
-        if (recording) {
-            Quickshell.execDetached(["sh", "-c", "~/bin/stew capture stop"])
-            refresh.start()
-        } else {
-            panel.toggle()
-        }
-    }
-
-    CapturePanel {
-        id: panel
-        anchorItem: root
+        Quickshell.execDetached(["sh", "-c", "~/bin/stew capture stop"])
+        refresh.start()
     }
 }

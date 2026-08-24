@@ -12,7 +12,7 @@ services/     singletons only — the one dir with a hand-written qmldir.
               Theme, Commands (launcher tree), PanelManager, Notifs
               (notification daemon), Session (actions), Fuzzy (matcher),
               Caffeine (stay-awake state; toggle lives in DisplayPanel,
-              Backlight glyph tints green while active)
+              Display glyph tints green while active)
 lib/          shared components: Panel (base for anchored panels),
               BarWidget (clickable bar item), BarText, VolSlider, MeterRow, NetRow
 bar/          Bar.qml + one file per widget
@@ -87,6 +87,12 @@ qs ipc call clipboard toggle         SUPER+SHIFT+V (SUPER+V is togglefloating)
 - Launcher entries: quickshell alternative → `run:` callback (tagged `qs`);
   otherwise `cmd:` shell string wrapping stew (tagged `stew`). See
   `services/Commands.qml` and `Launcher.activate()`.
+- Capture UI lives in the Display panel (screenshots via hyprshot, recording
+  via `stew capture`); the bar ⏺ appears only while recording, as a stop
+  button. Audio/battery widgets are icon-only — exact numbers in their panels.
+- Bluetooth uses the native Quickshell.Bluetooth module (connect/disconnect
+  paired devices, adapter power). Pairing stays in bluetoothctl. Widget hides
+  when no adapter (bluetooth.service must be running to see one).
 - Battery uses UPower with an explicit device filter
   (`ready && isPresent && isLaptopBattery`) — **not** `UPower.displayDevice`,
   which can resolve to peripheral batteries (Logitech hidpp mouse). The widget
@@ -116,7 +122,7 @@ qs ipc call clipboard toggle         SUPER+SHIFT+V (SUPER+V is togglefloating)
   input handlers (see CalendarPanel's WheelHandler), not filling MouseAreas.
 - Widgets that shell out follow the pattern: `Process` + `StdioCollector` +
   poll `Timer`, plus a short one-shot Timer after writes for optimistic
-  refresh (Backlight, Capture).
+  refresh (Display, Capture).
 
 ## TODO ideas
 

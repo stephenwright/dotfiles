@@ -47,6 +47,18 @@ Panel {
         lateRefresh.start()
     }
 
+    // close first so the panel isn't in the frozen frame / fighting slurp's grab
+    function shot(mode) {
+        close()
+        Quickshell.execDetached(["sh", "-c",
+            "sleep 0.2; hyprshot --mode " + mode + " --clipboard-only --freeze"])
+    }
+
+    function record(format) {
+        close()
+        Quickshell.execDetached(["sh", "-c", "~/bin/stew capture start --format " + format])
+    }
+
     function toggleNight() {
         if (nightOn)
             Quickshell.execDetached(["pkill", "-x", "wlsunset"])
@@ -58,7 +70,7 @@ Panel {
 
     BarText {
         text: "Brightness"
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontSizeSmall
         color: Theme.overlay1
     }
 
@@ -150,7 +162,7 @@ Panel {
 
     BarText {
         text: "Profile"
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontSizeSmall
         color: Theme.overlay1
     }
 
@@ -186,6 +198,72 @@ Panel {
                     color: profBtn.current ? Theme.mauve : Theme.text
                 }
             }
+        }
+    }
+
+    Component {
+        id: captureBtn
+
+        MouseArea {
+            id: btn
+            required property var modelData
+
+            width: (root.contentWidth - 12) / 3
+            height: 26
+            hoverEnabled: true
+            onClicked: modelData.run()
+
+            Rectangle {
+                anchors.fill: parent
+                color: btn.containsMouse ? Qt.alpha(Theme.surface0, 0.7) : "transparent"
+                border.color: Theme.surface1
+                border.width: 1
+            }
+            BarText {
+                anchors.centerIn: parent
+                text: btn.modelData.label
+                color: btn.containsMouse ? Theme.mauve : Theme.text
+            }
+        }
+    }
+
+    BarText {
+        text: "Screenshot"
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.overlay1
+    }
+
+    Grid {
+        columns: 3
+        spacing: 6
+
+        Repeater {
+            model: [
+                { label: "region", run: () => root.shot("region") },
+                { label: "window", run: () => root.shot("window") },
+                { label: "screen", run: () => root.shot("output") }
+            ]
+            delegate: captureBtn
+        }
+    }
+
+    BarText {
+        text: "Record"
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.overlay1
+    }
+
+    Grid {
+        columns: 3
+        spacing: 6
+
+        Repeater {
+            model: [
+                { label: "gif", run: () => root.record("gif") },
+                { label: "mp4", run: () => root.record("mp4") },
+                { label: "webm", run: () => root.record("webm") }
+            ]
+            delegate: captureBtn
         }
     }
 }

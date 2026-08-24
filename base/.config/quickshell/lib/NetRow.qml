@@ -30,7 +30,7 @@ MouseArea {
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
         anchors.rightMargin: 4
-        font.pixelSize: 10
+        font.pixelSize: Theme.fontSizeHint
         text: netRow.modelData.connected ? "✓"
             : netRow.modelData.stateChanging ? "…" : ""
         color: netRow.modelData.connected ? Theme.green

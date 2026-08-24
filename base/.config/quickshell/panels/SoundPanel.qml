@@ -36,7 +36,7 @@ Panel {
 
         BarText {
             text: "Output"
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontSizeSmall
             color: Theme.overlay1
         }
         MouseArea {
@@ -52,7 +52,7 @@ Panel {
             BarText {
                 anchors.centerIn: parent
                 text: ""
-                font.pixelSize: 12
+                font.pixelSize: Theme.fontSize
                 color: mixerBtn.containsMouse ? Theme.mauve : Theme.overlay1
             }
         }
@@ -101,7 +101,7 @@ Panel {
     BarText {
         visible: root.sinks.length > 1
         text: "Devices"
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontSizeSmall
         color: Theme.overlay1
     }
 
@@ -139,7 +139,7 @@ Panel {
     BarText {
         visible: root.sources.length > 0
         text: "Input"
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontSizeSmall
         color: Theme.overlay1
     }
 
@@ -249,7 +249,7 @@ Panel {
     BarText {
         visible: root.streams.length > 0
         text: "Apps"
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontSizeSmall
         color: Theme.overlay1
     }
 
@@ -268,7 +268,7 @@ Panel {
                 anchors.verticalCenter: parent.verticalCenter
                 elide: Text.ElideRight
                 text: root.appLabel(appRow.modelData)
-                font.pixelSize: 11
+                font.pixelSize: Theme.fontSizeSmall
                 color: Theme.subtext0
             }
 
@@ -293,7 +293,7 @@ Panel {
                 BarText {
                     anchors.centerIn: parent
                     text: appRow.modelData.audio?.muted ? "󰝟" : "󰕾"
-                    font.pixelSize: 11
+                    font.pixelSize: Theme.fontSizeSmall
                     color: appRow.modelData.audio?.muted ? Theme.red
                          : appMute.containsMouse ? Theme.mauve : Theme.overlay1
                 }

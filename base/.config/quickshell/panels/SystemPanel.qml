@@ -8,32 +8,10 @@ Panel {
 
     panelName: "system"
 
-    Item {
-        width: parent.width
-        height: 16
-
-        BarText {
-            text: "System"
-            font.pixelSize: 11
-            color: Theme.overlay1
-        }
-        MouseArea {
-            id: monBtn
-            width: 20
-            height: parent.height
-            anchors.right: parent.right
-            hoverEnabled: true
-            onClicked: {
-                root.close()
-                Quickshell.execDetached(["gnome-system-monitor"])
-            }
-            BarText {
-                anchors.centerIn: parent
-                text: ""
-                font.pixelSize: 12
-                color: monBtn.containsMouse ? Theme.mauve : Theme.overlay1
-            }
-        }
+    BarText {
+        text: "System"
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.overlay1
     }
 
     MeterRow {
@@ -77,5 +55,28 @@ Panel {
         detail: root.anchorItem.temp + "°C"
         frac: root.anchorItem.temp / 100
         barColor: Theme.levelColor(frac, 0.7, 0.8)
+    }
+
+    MouseArea {
+        id: monRow
+        width: parent.width
+        height: 26
+        hoverEnabled: true
+        onClicked: {
+            root.close()
+            Quickshell.execDetached(Settings.systemMonitor)
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            color: monRow.containsMouse ? Qt.alpha(Theme.surface0, 0.7) : "transparent"
+        }
+        BarText {
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.left: parent.left
+            anchors.leftMargin: 4
+            text: " Open btop"
+            color: monRow.containsMouse ? Theme.mauve : Theme.text
+        }
     }
 }

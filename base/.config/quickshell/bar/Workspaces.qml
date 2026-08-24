@@ -21,7 +21,7 @@ Row {
 
             // hide special workspaces (negative ids) and other monitors' workspaces
             visible: modelData.id > 0 && modelData.monitor === root.monitor
-            width: visible ? wsLabel.implicitWidth + 16 : 0
+            width: visible ? Theme.fontSizeSmall + (Theme.widgetPadding * 2) : 0
             height: parent ? parent.height : 0
             hoverEnabled: true
 
@@ -45,6 +45,7 @@ Row {
                 id: wsLabel
                 anchors.centerIn: parent
                 text: ws.modelData.name
+                font.pixelSize: Theme.fontSizeSmall
                 color: ws.modelData.active ? Theme.mauve
                      : ws.containsMouse ? Theme.sapphire
                      : Theme.text

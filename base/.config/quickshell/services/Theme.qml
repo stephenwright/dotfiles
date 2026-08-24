@@ -2,8 +2,25 @@ pragma Singleton
 import QtQuick
 import Quickshell
 
-// Catppuccin Macchiato
 Singleton {
+
+    // font
+    readonly property string fontFamily: "SauceCodePro Nerd Font Mono"
+
+    readonly property int fontSize: 14        // BarText default
+    readonly property int fontSizeSmall: 12   // headers, labels
+    readonly property int fontSizeHint: 10    // right-aligned hints/status
+
+    // spacing
+    readonly property int barHeight: 30
+    readonly property int barSpacing: 8       // gap between items
+    readonly property int widgetPadding: 8    // clickable area: bar widgets + workspace pills
+    readonly property int panelMargin: 5      // gap between panel and bar/screen edges
+    readonly property int panelPadding: 10    // panel content inset
+
+    // colours
+
+    // Catppuccin Macchiato
     readonly property color rosewater: "#f4dbd6"
     readonly property color flamingo: "#f0c6c6"
     readonly property color pink: "#f5bde6"
@@ -32,9 +49,6 @@ Singleton {
     readonly property color crust: "#181926"
 
     readonly property color barBg: Qt.rgba(0, 0, 0, 0.7)
-    readonly property string fontFamily: "SauceCodePro Nerd Font Mono"
-    readonly property int fontSize: 12
-    readonly property int padding: 8
 
     function levelColor(frac, warn, crit) {
         return frac >= crit ? red : frac >= warn ? yellow : mauve

@@ -27,13 +27,14 @@ PanelWindow {
 
     visible: false
     implicitWidth: panelWidth
-    implicitHeight: content.implicitHeight + 28
+    implicitHeight: content.implicitHeight + Theme.panelPadding * 2 + 4
     color: "transparent"
 
     anchors {
         top: true
         left: true
     }
+    margins.top: Theme.panelMargin
     exclusiveZone: 0
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: root.panelName
@@ -58,7 +59,8 @@ PanelWindow {
         screen = win.screen
         const r = anchorItem.mapToItem(null, 0, 0)
         const x = r.x + anchorItem.width / 2 - implicitWidth / 2
-        margins.left = Math.round(Math.max(8, Math.min(x, screen.width - implicitWidth - 8)))
+        margins.left = Math.round(Math.max(Theme.panelMargin,
+            Math.min(x, screen.width - implicitWidth - Theme.panelMargin)))
         opening()
         visible = true
         if (wantsKeyboard)
@@ -97,7 +99,7 @@ PanelWindow {
             Column {
                 id: content
                 anchors.fill: parent
-                anchors.margins: 12
+                anchors.margins: Theme.panelPadding
                 spacing: root.contentSpacing
             }
         }

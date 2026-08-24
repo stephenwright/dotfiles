@@ -47,7 +47,7 @@ Panel {
 
     BarText {
         text: "Battery"
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontSizeSmall
         color: Theme.overlay1
     }
 
@@ -69,13 +69,13 @@ Panel {
         BarText {
             anchors.left: parent.left
             text: "Health"
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontSizeSmall
             color: Theme.subtext0
         }
         BarText {
             anchors.right: parent.right
             text: root.bat ? Math.round(root.bat.healthPercentage) + "%" : ""
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontSizeSmall
             color: Theme.text
         }
     }
@@ -88,20 +88,20 @@ Panel {
         BarText {
             anchors.left: parent.left
             text: "Power draw"
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontSizeSmall
             color: Theme.subtext0
         }
         BarText {
             anchors.right: parent.right
             text: root.bat ? root.bat.changeRate.toFixed(1) + " W" : ""
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontSizeSmall
             color: Theme.text
         }
     }
 
     BarText {
         text: "Profile"
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontSizeSmall
         color: Theme.overlay1
     }
 

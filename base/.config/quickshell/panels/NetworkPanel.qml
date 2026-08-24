@@ -123,7 +123,7 @@ Panel {
         BarText {
             anchors.verticalCenter: parent.verticalCenter
             text: "Wi-Fi"
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontSizeSmall
             color: Theme.overlay1
         }
 
@@ -163,7 +163,7 @@ Panel {
             BarText {
                 anchors.centerIn: parent
                 text: ""
-                font.pixelSize: 12
+                font.pixelSize: Theme.fontSize
                 color: gearBtn.containsMouse ? Theme.mauve : Theme.overlay1
             }
         }
@@ -177,14 +177,14 @@ Panel {
         text: (root.curDev === root.wiredDev ? "󰈀 " : "󰩟 ")
             + (root.ipAddr || "…")
             + (root.curDev ? " on " + root.curDev.name : "")
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontSizeSmall
         color: Theme.subtext0
     }
 
     BarText {
         visible: root.knownNets.length > 0
         text: "Known"
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontSizeSmall
         color: Theme.overlay1
     }
 
@@ -197,7 +197,7 @@ Panel {
     BarText {
         visible: root.otherNets.length > 0
         text: "Other"
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontSizeSmall
         color: Theme.overlay1
     }
 
@@ -220,7 +220,7 @@ Panel {
 
         BarText {
             text: "password for " + (root.pendingNet ? root.pendingNet.name : "")
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontSizeSmall
             color: Theme.overlay1
         }
 
@@ -257,7 +257,7 @@ Panel {
     BarText {
         visible: root.errorMsg !== ""
         text: root.errorMsg
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontSizeSmall
         color: Theme.red
     }
 }

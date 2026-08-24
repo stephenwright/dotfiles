@@ -135,7 +135,7 @@ Panel {
                 width: 36
                 horizontalAlignment: Text.AlignHCenter
                 text: modelData
-                font.pixelSize: 11
+                font.pixelSize: Theme.fontSizeSmall
                 color: Theme.overlay1
             }
         }

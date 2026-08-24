@@ -13,7 +13,7 @@ MouseArea {
     signal scrolledDown()
 
     height: parent ? parent.height : implicitHeight
-    implicitWidth: label.implicitWidth + Theme.padding * 2
+    implicitWidth: label.implicitWidth + Theme.widgetPadding * 2
     hoverEnabled: true
     acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
 

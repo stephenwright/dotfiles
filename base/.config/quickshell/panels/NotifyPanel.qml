@@ -44,7 +44,7 @@ Panel {
         BarText {
             anchors.verticalCenter: parent.verticalCenter
             text: "Notifications"
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontSizeSmall
             color: Theme.overlay1
         }
 
@@ -75,7 +75,7 @@ Panel {
                 anchors.rightMargin: 6
                 anchors.verticalCenter: parent.verticalCenter
                 text: "dnd"
-                font.pixelSize: 11
+                font.pixelSize: Theme.fontSizeSmall
                 color: Notifs.dnd ? Theme.red : Theme.overlay1
             }
         }
@@ -90,7 +90,7 @@ Panel {
             BarText {
                 anchors.centerIn: parent
                 text: "󰎟"
-                font.pixelSize: 13
+                font.pixelSize: Theme.fontSize
                 color: clearBtn.containsMouse ? Theme.mauve : Theme.overlay1
             }
         }
@@ -155,7 +155,6 @@ Panel {
                         anchors.rightMargin: 6
                         elide: Text.ElideRight
                         font.bold: true
-                        font.pixelSize: 11
                         text: row.modelData.appName
                             + (row.modelData.summary ? " · " + row.modelData.summary : "")
                     }
@@ -164,7 +163,7 @@ Panel {
                         anchors.right: closeBtn.left
                         anchors.rightMargin: 6
                         anchors.verticalCenter: parent.verticalCenter
-                        font.pixelSize: 10
+                        font.pixelSize: Theme.fontSizeHint
                         color: Theme.overlay0
                         text: Notifs.timeOf(row.modelData)
                     }
@@ -178,7 +177,7 @@ Panel {
                         BarText {
                             anchors.centerIn: parent
                             text: "✕"
-                            font.pixelSize: 11
+                            font.pixelSize: Theme.fontSizeSmall
                             color: closeBtn.containsMouse ? Theme.red : Theme.overlay1
                         }
                     }
@@ -191,7 +190,6 @@ Panel {
                     maximumLineCount: row.expanded ? 20 : 2
                     elide: Text.ElideRight
                     textFormat: Text.StyledText
-                    font.pixelSize: 11
                     color: Theme.subtext0
                     text: row.modelData.body
                 }
@@ -222,7 +220,6 @@ Panel {
                             BarText {
                                 id: actText
                                 anchors.centerIn: parent
-                                font.pixelSize: 11
                                 text: actBtn.modelData.text
                             }
                         }
@@ -251,7 +248,7 @@ Panel {
                 anchors.verticalCenter: parent.verticalCenter
                 text: (root.historyOpen ? "▾ " : "▸ ")
                     + "history (" + Notifs.history.length + ")"
-                font.pixelSize: 11
+                font.pixelSize: Theme.fontSizeSmall
                 color: histToggle.containsMouse ? Theme.text : Theme.overlay1
             }
         }
@@ -321,7 +318,6 @@ Panel {
                         anchors.right: histTime.left
                         anchors.rightMargin: 6
                         elide: Text.ElideRight
-                        font.pixelSize: 11
                         color: Theme.overlay1
                         text: histRow.modelData.appName
                             + (histRow.modelData.summary
@@ -332,7 +328,7 @@ Panel {
                         anchors.right: histDelBtn.left
                         anchors.rightMargin: 6
                         anchors.verticalCenter: parent.verticalCenter
-                        font.pixelSize: 10
+                        font.pixelSize: Theme.fontSizeHint
                         color: Theme.overlay0
                         text: Qt.formatTime(new Date(histRow.modelData.time), "hh:mm")
                     }
@@ -346,7 +342,7 @@ Panel {
                         BarText {
                             anchors.centerIn: parent
                             text: "✕"
-                            font.pixelSize: 11
+                            font.pixelSize: Theme.fontSizeSmall
                             color: histDelBtn.containsMouse ? Theme.red : Theme.overlay1
                         }
                     }
@@ -359,7 +355,6 @@ Panel {
                     maximumLineCount: histRow.expanded ? 20 : 2
                     elide: Text.ElideRight
                     textFormat: Text.StyledText
-                    font.pixelSize: 11
                     color: Theme.overlay0
                     text: histRow.modelData.body
                 }

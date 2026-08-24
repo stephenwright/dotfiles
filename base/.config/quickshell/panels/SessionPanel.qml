@@ -99,7 +99,7 @@ Panel {
                 anchors.rightMargin: 6
                 visible: row.isArmed
                 text: "again to confirm"
-                font.pixelSize: 10
+                font.pixelSize: Theme.fontSizeHint
                 color: Theme.red
             }
         }

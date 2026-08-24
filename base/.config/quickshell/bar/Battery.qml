@@ -22,7 +22,7 @@ BarWidget {
         : plugged ? "󰚥"
         : icons[Math.min(9, Math.floor(pct / 10))]
 
-    text: icon + " " + pct + "%"
+    text: icon
     fg: !plugged && pct <= 15 ? Theme.red
         : !plugged && pct <= 30 ? Theme.yellow
         : Theme.text

@@ -14,7 +14,7 @@ PanelWindow {
         left: true
         right: true
     }
-    implicitHeight: 30
+    implicitHeight: Theme.barHeight
     color: Theme.barBg
 
     Item {
@@ -23,8 +23,9 @@ PanelWindow {
         Row {
             anchors.left: parent.left
             height: parent.height
-            spacing: 10
+            spacing: Theme.barSpacing
 
+            LauncherButton {}
             Workspaces { screen: root.screen }
             FocusedWindow {}
         }
@@ -36,7 +37,7 @@ PanelWindow {
         Row {
             anchors.right: parent.right
             height: parent.height
-            spacing: 8
+            spacing: Theme.barSpacing
 
             Tray { id: tray }
             Rectangle {
@@ -46,13 +47,14 @@ PanelWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 color: Theme.surface1
             }
-            SysInfo {}
-            Backlight {}
-            Battery {}
-            NetworkStatus {}
-            Audio {}
             Capture {}
+            Display {}
+            BluetoothStatus {}
+            NetworkStatus {}
             NotifyBell {}
+            SysInfo {}
+            Battery {}
+            Audio {}
             PowerButton {}
         }
     }

@@ -134,7 +134,7 @@ PanelWindow {
                                 width: parent.width - 8
                                 horizontalAlignment: Text.AlignHCenter
                                 elide: Text.ElideMiddle
-                                font.pixelSize: 10
+                                font.pixelSize: Theme.fontSizeHint
                                 text: cell.modelData.split("/").pop()
                                 color: cell.isCurrent ? Theme.mauve : Theme.subtext0
                             }

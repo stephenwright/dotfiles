@@ -37,6 +37,10 @@ gifski
 ffmpeg
 wl-clipboard
 
+# bluetooth (quickshell widget/panel; enable with: systemctl enable --now bluetooth)
+bluez
+bluez-utils
+
 # audio (pipewire stack)
 pipewire
 pipewire-audio

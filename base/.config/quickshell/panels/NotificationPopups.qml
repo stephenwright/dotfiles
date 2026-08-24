@@ -19,8 +19,8 @@ PanelWindow {
         top: true
         right: true
     }
-    margins.top: 8
-    margins.right: 8
+    margins.top: Theme.panelMargin
+    margins.right: Theme.panelMargin
     implicitWidth: 480
     implicitHeight: column.implicitHeight
 
@@ -102,7 +102,7 @@ PanelWindow {
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.top: parent.top
-                    anchors.margins: 12
+                    anchors.margins: Theme.panelPadding
                     spacing: 4
 
                     Row {
@@ -139,15 +139,15 @@ PanelWindow {
                                 maximumLineCount: 4
                                 elide: Text.ElideRight
                                 textFormat: Text.StyledText
-                                font.pixelSize: 11
                                 color: Theme.subtext0
                                 text: toast.modelData.body
                             }
                         }
                     }
 
+                    // a single action is redundant with body-click (which invokes actions[0])
                     Row {
-                        visible: toast.modelData.actions.length > 0
+                        visible: toast.modelData.actions.length > 1
                         spacing: 6
 
                         Repeater {
@@ -175,7 +175,6 @@ PanelWindow {
                                 BarText {
                                     id: actText
                                     anchors.centerIn: parent
-                                    font.pixelSize: 11
                                     text: actBtn.modelData.text
                                 }
                             }

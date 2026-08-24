@@ -18,13 +18,13 @@ Column {
         BarText {
             anchors.left: parent.left
             text: label
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontSizeSmall
             color: Theme.subtext0
         }
         BarText {
             anchors.right: parent.right
             text: detail
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontSizeSmall
             color: Theme.text
         }
     }

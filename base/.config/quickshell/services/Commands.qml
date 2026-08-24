@@ -44,7 +44,7 @@ Singleton {
         {
             name: "Capture",
             children: [
-                { name: "panel", run: () => PanelManager.toggleByName("capture") },
+                { name: "screenshot / record", run: () => PanelManager.toggleByName("display") },
                 { name: "toggle recording", cmd: "~/bin/stew capture toggle" }
             ]
         },

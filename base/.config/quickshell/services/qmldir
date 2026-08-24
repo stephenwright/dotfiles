@@ -5,4 +5,5 @@ singleton PanelManager PanelManager.qml
 singleton Notifs Notifs.qml
 singleton Session Session.qml
 singleton Caffeine Caffeine.qml
+singleton Settings Settings.qml
 singleton Fuzzy Fuzzy.qml

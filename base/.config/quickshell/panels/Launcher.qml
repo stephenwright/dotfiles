@@ -24,6 +24,9 @@ PanelWindow {
     property var results: []
     property int selected: 0
 
+    // standalone window, but registered so bar widgets/IPC can toggleByName it
+    Component.onCompleted: PanelManager.register("launcher", root)
+
     function toggle() {
         visible ? hide() : show()
     }

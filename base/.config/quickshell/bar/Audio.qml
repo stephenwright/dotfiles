@@ -17,7 +17,7 @@ BarWidget {
         objects: root.sink ? [root.sink] : []
     }
 
-    text: (muted ? "󰝟" : volPct >= 67 ? "󰕾" : volPct >= 34 ? "󰖀" : "󰕿") + " " + volPct + "%"
+    text: muted ? "󰝟" : volPct >= 67 ? "󰕾" : volPct >= 34 ? "󰖀" : "󰕿"
     fg: muted ? Theme.overlay0 : Theme.text
 
     function setVol(v) {
