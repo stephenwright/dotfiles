@@ -53,10 +53,16 @@ to screen), and dismissal. `services/PanelManager.qml` keeps at most one open.
 ## Notifications
 
 `services/Notifs.qml` hosts the NotificationServer — quickshell IS the
-notification daemon. `NotificationPopups.qml` renders toasts (top-center,
+notification daemon. `NotificationPopups.qml` renders toasts (top-right,
 mako-parity urgency colors/timeouts: low green 4s, normal blue 8s, critical
-red sticky). `NotifyPanel.qml` is the bell history panel. DND survives config
-reloads via PersistentProperties; history via `keepOnReload`.
+red sticky). `NotifyPanel.qml` is the bell panel: live notifications on top,
+plus a collapsed history section of dismissed ones. Closed Notification
+objects are destroyed, so history stores plain-data snapshots (no actions) —
+capped at 100, per-item delete. Arrival times are tracked by notification id
+(shown on live + history rows). The bell shows a red dot for notifications
+arriving during DND (cleared on panel open or DND toggle). DND, history, and
+arrival times survive config reloads via PersistentProperties (as JSON
+strings — see gotchas); live notifications via `keepOnReload`.
 
 ## IPC surface (hyprland.conf binds)
 
@@ -95,6 +101,9 @@ qs ipc call clipboard toggle         SUPER+SHIFT+V (SUPER+V is togglefloating)
 - The DBus name `org.freedesktop.Notifications` is exclusive. Another daemon
   (mako, or a stray second `qs -p` test instance) silently steals it;
   quickshell retries when the name frees. Symptom: toasts stop appearing.
+- PersistentProperties: a `var` holding a JS object/array warns "JSValue
+  can't be reassigned to another engine" on reload and can restore as
+  undefined — persist JSON strings instead (Notifs historyJson/arrivalsJson).
 - Unit mismatches in UPower: `percentage` is 0–1, `healthPercentage` is 0–100.
 - `Notification` objects are destroyed after close — popup/history delegates
   must drop refs on `onClosed` (see NotificationPopups).
@@ -115,8 +124,7 @@ qs ipc call clipboard toggle         SUPER+SHIFT+V (SUPER+V is togglefloating)
   UI exists; `stew run` stays regardless.
 - Theme consolidation: Theme.qml as the single Catppuccin source generating
   hypr/colors.conf + fuzzel colors (currently duplicated).
-- NotifyPanel: timestamps, app grouping, inline-reply support
-  (`inlineReplySupported` exists in the server API).
+- NotifyPanel: app grouping.
 - Clipboard picker: image thumbnails (decode to tmpfile), per-item delete
   (`cliphist delete`).
 - Battery: low-battery notification via Notifs when crossing 15%.

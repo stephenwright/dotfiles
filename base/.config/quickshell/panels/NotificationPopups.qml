@@ -4,9 +4,8 @@ import Quickshell.Wayland
 import "../lib"
 import "../services"
 
-// Toast popups, top-center (top-only anchor centers horizontally).
-// Left-click invokes the default action, right-click dismisses,
-// timeout hides the toast but keeps it in history.
+// Toast popups, top-right. Left-click invokes the default action,
+// right-click dismisses, timeout hides the toast but keeps it in history.
 PanelWindow {
     id: root
 
@@ -18,8 +17,10 @@ PanelWindow {
 
     anchors {
         top: true
+        right: true
     }
     margins.top: 8
+    margins.right: 8
     implicitWidth: 480
     implicitHeight: column.implicitHeight
 
@@ -40,6 +41,32 @@ PanelWindow {
                 color: Theme.base
                 border.color: Notifs.urgencyColor(modelData.urgency)
                 border.width: 2
+
+                // any popups change rebuilds all delegates (fresh array model),
+                // so only fresh notifications get the entrance animation
+                Component.onCompleted: {
+                    if (Date.now() - Notifs.arrivalOf(modelData) < 400)
+                        enter.start()
+                }
+
+                ParallelAnimation {
+                    id: enter
+                    NumberAnimation {
+                        target: toast
+                        property: "opacity"
+                        from: 0
+                        to: 1
+                        duration: 180
+                    }
+                    NumberAnimation {
+                        target: toast
+                        property: "x"
+                        from: 40
+                        to: 0
+                        duration: 180
+                        easing.type: Easing.OutCubic
+                    }
+                }
 
                 // Notification objects die after close; drop the popup ref
                 Connections {

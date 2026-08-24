@@ -25,7 +25,7 @@ PanelWindow {
             height: parent.height
             spacing: 10
 
-            Workspaces {}
+            Workspaces { screen: root.screen }
             FocusedWindow {}
         }
 

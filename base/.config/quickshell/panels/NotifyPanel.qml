@@ -13,10 +13,13 @@ Panel {
 
     property int selected: 0
     property int expandedIndex: -1
+    property bool historyOpen: false
 
     onOpening: {
         selected = 0
         expandedIndex = -1
+        historyOpen = false
+        Notifs.clearDndMissed()
     }
 
     onKeyPressed: event => {
@@ -148,13 +151,22 @@ Panel {
 
                     BarText {
                         anchors.left: parent.left
-                        anchors.right: closeBtn.left
+                        anchors.right: rowTime.left
                         anchors.rightMargin: 6
                         elide: Text.ElideRight
                         font.bold: true
                         font.pixelSize: 11
                         text: row.modelData.appName
                             + (row.modelData.summary ? " · " + row.modelData.summary : "")
+                    }
+                    BarText {
+                        id: rowTime
+                        anchors.right: closeBtn.left
+                        anchors.rightMargin: 6
+                        anchors.verticalCenter: parent.verticalCenter
+                        font.pixelSize: 10
+                        color: Theme.overlay0
+                        text: Notifs.timeOf(row.modelData)
                     }
                     MouseArea {
                         id: closeBtn
@@ -215,6 +227,141 @@ Panel {
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    // dismissed notifications (plain-data snapshots), collapsed by default
+    Item {
+        width: parent.width
+        height: 18
+        visible: Notifs.history.length > 0
+
+        MouseArea {
+            id: histToggle
+            anchors.left: parent.left
+            width: histLabel.implicitWidth
+            height: parent.height
+            hoverEnabled: true
+            onClicked: root.historyOpen = !root.historyOpen
+
+            BarText {
+                id: histLabel
+                anchors.verticalCenter: parent.verticalCenter
+                text: (root.historyOpen ? "▾ " : "▸ ")
+                    + "history (" + Notifs.history.length + ")"
+                font.pixelSize: 11
+                color: histToggle.containsMouse ? Theme.text : Theme.overlay1
+            }
+        }
+
+        MouseArea {
+            id: histClearBtn
+            visible: root.historyOpen
+            width: 20
+            height: parent.height
+            anchors.right: parent.right
+            hoverEnabled: true
+            onClicked: Notifs.clearHistory()
+            BarText {
+                anchors.centerIn: parent
+                text: "󰎟"
+                font.pixelSize: 13
+                color: histClearBtn.containsMouse ? Theme.mauve : Theme.overlay1
+            }
+        }
+    }
+
+    ListView {
+        id: histList
+        width: parent.width
+        height: Math.min(240, contentHeight)
+        visible: root.historyOpen && Notifs.history.length > 0
+        clip: true
+        spacing: 6
+        model: Notifs.history
+
+        delegate: Item {
+            id: histRow
+            required property var modelData
+            required property int index
+
+            property bool expanded: false
+
+            width: ListView.view.width
+            height: histInner.implicitHeight + 12
+
+            Rectangle {
+                anchors.fill: parent
+                color: "transparent"
+                border.color: Qt.alpha(Notifs.urgencyColor(histRow.modelData.urgency), 0.2)
+                border.width: 1
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: histRow.expanded = !histRow.expanded
+            }
+
+            Column {
+                id: histInner
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: 6
+                spacing: 2
+
+                Item {
+                    width: parent.width
+                    height: 16
+
+                    BarText {
+                        anchors.left: parent.left
+                        anchors.right: histTime.left
+                        anchors.rightMargin: 6
+                        elide: Text.ElideRight
+                        font.pixelSize: 11
+                        color: Theme.overlay1
+                        text: histRow.modelData.appName
+                            + (histRow.modelData.summary
+                                ? " · " + histRow.modelData.summary : "")
+                    }
+                    BarText {
+                        id: histTime
+                        anchors.right: histDelBtn.left
+                        anchors.rightMargin: 6
+                        anchors.verticalCenter: parent.verticalCenter
+                        font.pixelSize: 10
+                        color: Theme.overlay0
+                        text: Qt.formatTime(new Date(histRow.modelData.time), "hh:mm")
+                    }
+                    MouseArea {
+                        id: histDelBtn
+                        width: 16
+                        height: parent.height
+                        anchors.right: parent.right
+                        hoverEnabled: true
+                        onClicked: Notifs.deleteFromHistory(histRow.index)
+                        BarText {
+                            anchors.centerIn: parent
+                            text: "✕"
+                            font.pixelSize: 11
+                            color: histDelBtn.containsMouse ? Theme.red : Theme.overlay1
+                        }
+                    }
+                }
+
+                BarText {
+                    width: parent.width
+                    visible: text !== ""
+                    wrapMode: Text.Wrap
+                    maximumLineCount: histRow.expanded ? 20 : 2
+                    elide: Text.ElideRight
+                    textFormat: Text.StyledText
+                    font.pixelSize: 11
+                    color: Theme.overlay0
+                    text: histRow.modelData.body
                 }
             }
         }
