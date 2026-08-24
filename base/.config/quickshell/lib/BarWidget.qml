@@ -28,10 +28,11 @@ MouseArea {
         color: root.fg
     }
 
-    // accumulate to full 120-unit notches; hi-res wheels/touchpads send many small events
+    // accumulate to full 120-unit notches; hi-res wheels/touchpads send many small events,
+    // and some touchpads report only pixelDelta
     property real wheelAcc: 0
     onWheel: event => {
-        wheelAcc += event.angleDelta.y
+        wheelAcc += event.angleDelta.y !== 0 ? event.angleDelta.y : event.pixelDelta.y * 2.5
         while (wheelAcc >= 120) {
             wheelAcc -= 120
             root.scrolledUp()

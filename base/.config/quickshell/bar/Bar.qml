@@ -38,7 +38,14 @@ PanelWindow {
             height: parent.height
             spacing: 8
 
-            Tray {}
+            Tray { id: tray }
+            Rectangle {
+                visible: tray.count > 0
+                width: 1
+                height: 14
+                anchors.verticalCenter: parent.verticalCenter
+                color: Theme.surface1
+            }
             SysInfo {}
             Backlight {}
             Battery {}
@@ -46,7 +53,6 @@ PanelWindow {
             Audio {}
             Capture {}
             NotifyBell {}
-            Caffeine {}
             PowerButton {}
         }
     }

@@ -6,6 +6,8 @@ import "../lib"
 import "../services"
 
 Row {
+    readonly property int count: SystemTray.items.values.length
+
     height: parent.height
     spacing: 16
 

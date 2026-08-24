@@ -121,6 +121,33 @@ Panel {
         }
     }
 
+    MouseArea {
+        id: awakeRow
+        width: parent.width
+        height: 26
+        hoverEnabled: true
+        onClicked: Caffeine.on = !Caffeine.on
+
+        Rectangle {
+            anchors.fill: parent
+            color: awakeRow.containsMouse ? Qt.alpha(Theme.surface0, 0.7) : "transparent"
+        }
+        BarText {
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.left: parent.left
+            anchors.leftMargin: 4
+            text: "󰅶 Stay awake"
+            color: Caffeine.on ? Theme.green : Theme.text
+        }
+        BarText {
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.right: parent.right
+            anchors.rightMargin: 4
+            text: Caffeine.on ? "on" : "off"
+            color: Caffeine.on ? Theme.green : Theme.overlay0
+        }
+    }
+
     BarText {
         text: "Profile"
         font.pixelSize: 11

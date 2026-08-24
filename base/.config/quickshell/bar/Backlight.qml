@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Wayland
 import "../lib"
 import "../services"
 import "../panels"
@@ -11,6 +12,13 @@ BarWidget {
     property int percent: 0
 
     text: "󰍹"
+    fg: Caffeine.on ? Theme.green : Theme.text
+
+    // one inhibitor per bar/screen; overlapping inhibitors are harmless
+    IdleInhibitor {
+        window: root.QsWindow.window
+        enabled: Caffeine.on
+    }
 
     Process {
         id: proc

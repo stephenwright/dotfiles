@@ -10,7 +10,9 @@ shell.qml     entry: one Bar per screen + global windows (Launcher,
               ClipboardPanel, WallpaperPanel, NotificationPopups)
 services/     singletons only — the one dir with a hand-written qmldir.
               Theme, Commands (launcher tree), PanelManager, Notifs
-              (notification daemon), Session (actions), Fuzzy (matcher)
+              (notification daemon), Session (actions), Fuzzy (matcher),
+              Caffeine (stay-awake state; toggle lives in DisplayPanel,
+              Backlight glyph tints green while active)
 lib/          shared components: Panel (base for anchored panels),
               BarWidget (clickable bar item), BarText, VolSlider, MeterRow, NetRow
 bar/          Bar.qml + one file per widget

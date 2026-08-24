@@ -19,6 +19,7 @@ Singleton {
         {
             name: "Session",
             children: [
+                { name: "stay awake", run: () => Caffeine.on = !Caffeine.on },
                 { name: "lock", run: () => Session.lock() },
                 { name: "logout", run: () => Session.logout() },
                 { name: "sleep", run: () => Session.suspend() },
@@ -43,6 +44,7 @@ Singleton {
         {
             name: "Capture",
             children: [
+                { name: "panel", run: () => PanelManager.toggleByName("capture") },
                 { name: "toggle recording", cmd: "~/bin/stew capture toggle" }
             ]
         },

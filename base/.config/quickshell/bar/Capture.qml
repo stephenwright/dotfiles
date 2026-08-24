@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import "../lib"
 import "../services"
+import "../panels"
 
 BarWidget {
     id: root
@@ -32,8 +33,22 @@ BarWidget {
         onTriggered: proc.running = true
     }
 
-    onClicked: {
-        Quickshell.execDetached(["sh", "-c", "~/bin/stew capture toggle"])
+    function pollSoon() {
         refresh.start()
+    }
+
+    // recording: click stops immediately; idle: open the capture panel
+    onClicked: {
+        if (recording) {
+            Quickshell.execDetached(["sh", "-c", "~/bin/stew capture stop"])
+            refresh.start()
+        } else {
+            panel.toggle()
+        }
+    }
+
+    CapturePanel {
+        id: panel
+        anchorItem: root
     }
 }

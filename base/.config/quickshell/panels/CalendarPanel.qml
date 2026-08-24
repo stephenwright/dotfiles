@@ -60,9 +60,11 @@ Panel {
     }
 
     WheelHandler {
+        // WheelHandler defaults to mouse only; touchpads report pixelDelta with angleDelta 0
+        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
         property real wheelAcc: 0
         onWheel: event => {
-            wheelAcc += event.angleDelta.y
+            wheelAcc += event.angleDelta.y !== 0 ? event.angleDelta.y : event.pixelDelta.y * 2.5
             while (wheelAcc >= 120) {
                 wheelAcc -= 120
                 root.page(-1)

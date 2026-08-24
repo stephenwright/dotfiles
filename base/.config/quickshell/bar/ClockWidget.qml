@@ -14,8 +14,9 @@ BarWidget {
     text: Qt.formatDateTime(clock.date, "ddd dd, hh:mm AP")
 
     onClicked: panel.toggle()
-    onScrolledUp: if (panel.visible) panel.page(1)
-    onScrolledDown: if (panel.visible) panel.page(-1)
+    // match panel wheel direction: scroll down = next month
+    onScrolledUp: if (panel.visible) panel.page(-1)
+    onScrolledDown: if (panel.visible) panel.page(1)
 
     CalendarPanel {
         id: panel
