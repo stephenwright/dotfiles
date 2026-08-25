@@ -14,6 +14,7 @@ PanelWindow {
     property string panelName: "panel"
     property int panelWidth: 300
     property int contentSpacing: 10
+    property Item initialFocusItem: null
     default property alias contentData: content.data
     readonly property real contentWidth: content.width
 
@@ -60,7 +61,13 @@ PanelWindow {
             Math.min(x, screen.width - implicitWidth - Theme.panelMargin)))
         opening()
         visible = true
-        scope.forceActiveFocus()
+        Qt.callLater(() => {
+            const target = root.initialFocusItem
+            if (target && target.visible && target.enabled)
+                target.forceActiveFocus(Qt.TabFocusReason)
+            else
+                scope.forceActiveFocus(Qt.TabFocusReason)
+        })
     }
 
     function managedClose() {
@@ -95,6 +102,7 @@ PanelWindow {
             focus: true
 
             Keys.onPressed: event => {
+                PanelManager.keyboardMode = true
                 root.keyPressed(event)
             }
 

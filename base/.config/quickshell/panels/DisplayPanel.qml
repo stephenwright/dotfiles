@@ -8,6 +8,7 @@ Panel {
     id: root
 
     panelName: "display"
+    initialFocusItem: brightnessSlider
 
     property bool nightOn: false
     property string profile: ""
@@ -83,9 +84,11 @@ Panel {
             text: "󰃟"
         }
 
-        VolSlider {
+        PanelSlider {
+            id: brightnessSlider
             width: parent.width - 24 - 40 - 20
             value: (root.anchorItem ? root.anchorItem.percent : 0) / 100
+            accessibleName: "Brightness"
 
             property int lastSent: -1
             onMoved: v => {
@@ -106,17 +109,13 @@ Panel {
         }
     }
 
-    MouseArea {
+    PanelToggle {
         id: nightRow
         width: parent.width
         height: 26
-        hoverEnabled: true
-        onClicked: root.toggleNight()
-
-        Rectangle {
-            anchors.fill: parent
-            color: nightRow.containsMouse ? Qt.alpha(Theme.surface0, 0.7) : "transparent"
-        }
+        checked: root.nightOn
+        accessibleName: "Night light"
+        onToggled: root.toggleNight()
         BarText {
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
@@ -133,17 +132,13 @@ Panel {
         }
     }
 
-    MouseArea {
+    PanelToggle {
         id: awakeRow
         width: parent.width
         height: 26
-        hoverEnabled: true
-        onClicked: Caffeine.on = !Caffeine.on
-
-        Rectangle {
-            anchors.fill: parent
-            color: awakeRow.containsMouse ? Qt.alpha(Theme.surface0, 0.7) : "transparent"
-        }
+        checked: Caffeine.on
+        accessibleName: "Stay awake"
+        onToggled: Caffeine.on = !Caffeine.on
         BarText {
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
@@ -166,65 +161,13 @@ Panel {
         color: Theme.overlay1
     }
 
-    Grid {
+    PanelChoiceGroup {
+        width: parent.width
         columns: 2
-        spacing: 6
-
-        Repeater {
-            model: root.profiles
-
-            MouseArea {
-                id: profBtn
-                required property var modelData
-
-                readonly property bool current: modelData === root.profile
-
-                width: (root.contentWidth - 6) / 2
-                height: 26
-                hoverEnabled: true
-                onClicked: root.setProfile(modelData)
-
-                Rectangle {
-                    anchors.fill: parent
-                    color: profBtn.current ? Qt.alpha(Theme.mauve, 0.25)
-                         : profBtn.containsMouse ? Qt.alpha(Theme.surface0, 0.7)
-                         : "transparent"
-                    border.color: profBtn.current ? Theme.mauve : Theme.surface1
-                    border.width: 1
-                }
-                BarText {
-                    anchors.centerIn: parent
-                    text: profBtn.modelData
-                    color: profBtn.current ? Theme.mauve : Theme.text
-                }
-            }
-        }
-    }
-
-    Component {
-        id: captureBtn
-
-        MouseArea {
-            id: btn
-            required property var modelData
-
-            width: (root.contentWidth - 12) / 3
-            height: 26
-            hoverEnabled: true
-            onClicked: modelData.run()
-
-            Rectangle {
-                anchors.fill: parent
-                color: btn.containsMouse ? Qt.alpha(Theme.surface0, 0.7) : "transparent"
-                border.color: Theme.surface1
-                border.width: 1
-            }
-            BarText {
-                anchors.centerIn: parent
-                text: btn.modelData.label
-                color: btn.containsMouse ? Theme.mauve : Theme.text
-            }
-        }
+        options: root.profiles
+        accessibleName: "Profile"
+        optionCurrent: option => option === root.profile
+        onChosen: option => root.setProfile(option)
     }
 
     BarText {
@@ -233,18 +176,17 @@ Panel {
         color: Theme.overlay1
     }
 
-    Grid {
+    PanelChoiceGroup {
+        width: parent.width
         columns: 3
-        spacing: 6
-
-        Repeater {
-            model: [
-                { label: "region", run: () => root.shot("region") },
-                { label: "window", run: () => root.shot("window") },
-                { label: "screen", run: () => root.shot("output") }
-            ]
-            delegate: captureBtn
-        }
+        options: [
+            { label: "region", run: () => root.shot("region") },
+            { label: "window", run: () => root.shot("window") },
+            { label: "screen", run: () => root.shot("output") },
+        ]
+        accessibleName: "Screenshot"
+        optionText: option => option.label
+        onChosen: option => option.run()
     }
 
     BarText {
@@ -253,17 +195,16 @@ Panel {
         color: Theme.overlay1
     }
 
-    Grid {
+    PanelChoiceGroup {
+        width: parent.width
         columns: 3
-        spacing: 6
-
-        Repeater {
-            model: [
-                { label: "gif", run: () => root.record("gif") },
-                { label: "mp4", run: () => root.record("mp4") },
-                { label: "webm", run: () => root.record("webm") }
-            ]
-            delegate: captureBtn
-        }
+        options: [
+            { label: "gif", run: () => root.record("gif") },
+            { label: "mp4", run: () => root.record("mp4") },
+            { label: "webm", run: () => root.record("webm") },
+        ]
+        accessibleName: "Record"
+        optionText: option => option.label
+        onChosen: option => option.run()
     }
 }

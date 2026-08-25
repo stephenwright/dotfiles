@@ -1,7 +1,7 @@
 import QtQuick
 import "../services"
 
-MouseArea {
+PanelButton {
     id: netRow
 
     required property var modelData
@@ -9,12 +9,12 @@ MouseArea {
 
     width: parent.width
     height: 26
-    hoverEnabled: true
+    enabled: !modelData.connected && !modelData.stateChanging
+    accessibleName: "Connect to " + modelData.name
     onClicked: panel.activate(modelData)
-
-    Rectangle {
-        anchors.fill: parent
-        color: netRow.containsMouse ? Qt.alpha(Theme.surface0, 0.7) : "transparent"
+    Component.onDestruction: {
+        if (activeFocus && panel)
+            panel.recoverFocus()
     }
     BarText {
         anchors.verticalCenter: parent.verticalCenter

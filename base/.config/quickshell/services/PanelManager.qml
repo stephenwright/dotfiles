@@ -12,6 +12,7 @@ Singleton {
     property var current: null
     property var registry: ({})
     property var barWindows: []
+    property bool keyboardMode: false
     readonly property var workspaceEvents: [
         "workspace",
         "workspacev2",
@@ -59,6 +60,7 @@ Singleton {
             return
         }
         close()
+        keyboardMode = false
         current = panel
         panel.managedOpen()
     }
@@ -70,8 +72,44 @@ Singleton {
         }
         const closing = current
         current = null
+        keyboardMode = false
         if (closing)
             closing.managedClose()
+    }
+
+    function focusHorizontal(item, direction) {
+        keyboardMode = true
+        const origin = item.mapToGlobal(item.width / 2, item.height / 2)
+        let candidate = item.nextItemInFocusChain(true)
+        let best = null
+        let bestScore = Infinity
+        let count = 0
+
+        while (candidate && candidate !== item && count++ < 512) {
+            const point = candidate.mapToGlobal(candidate.width / 2, candidate.height / 2)
+            const dx = point.x - origin.x
+            const dy = point.y - origin.y
+            const primary = dx * direction
+            if (primary > 1) {
+                const perpendicular = Math.abs(dy)
+                const score = primary * 1000 + perpendicular
+                if (score < bestScore) {
+                    best = candidate
+                    bestScore = score
+                }
+            }
+            candidate = candidate.nextItemInFocusChain(true)
+        }
+
+        if (best)
+            best.forceActiveFocus(Qt.TabFocusReason)
+    }
+
+    function focusNext(item, forward) {
+        keyboardMode = true
+        const next = item.nextItemInFocusChain(forward)
+        if (next && next !== item)
+            next.forceActiveFocus(Qt.TabFocusReason)
     }
 
     function dismissed(panel) {

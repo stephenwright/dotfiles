@@ -11,6 +11,7 @@ Panel {
     panelName: "network"
     panelWidth: 320
     contentSpacing: 8
+    initialFocusItem: wifiSwitch
 
     property var pendingNet: null
     property var lastAttempt: null
@@ -107,6 +108,16 @@ Panel {
         pskInput.text = ""
     }
 
+    function recoverFocus() {
+        focusRecovery.restart()
+    }
+
+    Timer {
+        id: focusRecovery
+        interval: 0
+        onTriggered: if (root.visible) wifiSwitch.forceActiveFocus(Qt.TabFocusReason)
+    }
+
     Connections {
         target: root.lastAttempt
 
@@ -126,14 +137,16 @@ Panel {
             color: Theme.overlay1
         }
 
-        MouseArea {
+        PanelToggle {
             id: wifiSwitch
             width: 34
             height: 16
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: gearBtn.left
             anchors.rightMargin: 10
-            onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
+            checked: Networking.wifiEnabled
+            accessibleName: "Wi-Fi"
+            onToggled: Networking.wifiEnabled = !Networking.wifiEnabled
 
             Rectangle {
                 anchors.fill: parent
@@ -149,12 +162,12 @@ Panel {
             }
         }
 
-        MouseArea {
+        PanelButton {
             id: gearBtn
             width: 20
             height: parent.height
             anchors.right: parent.right
-            hoverEnabled: true
+            accessibleName: "Network settings"
             onClicked: {
                 root.close()
                 Quickshell.execDetached(["nm-connection-editor"])
@@ -163,7 +176,7 @@ Panel {
                 anchors.centerIn: parent
                 text: ""
                 font.pixelSize: Theme.fontSize
-                color: gearBtn.containsMouse ? Theme.mauve : Theme.overlay1
+                color: gearBtn.hovered || gearBtn.showFocus ? Theme.mauve : Theme.overlay1
             }
         }
     }
@@ -241,6 +254,8 @@ Panel {
                 font.family: Theme.fontFamily
                 font.pixelSize: 13
                 clip: true
+                activeFocusOnTab: true
+                Accessible.name: "Network password"
                 onAccepted: root.submitPsk()
             }
         }

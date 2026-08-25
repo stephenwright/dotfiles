@@ -13,8 +13,9 @@ services/     singletons only — the one dir with a hand-written qmldir.
               (notification daemon), Session (actions), Fuzzy (matcher),
               Caffeine (stay-awake state; toggle lives in DisplayPanel,
               Display glyph tints green while active)
-lib/          shared components: Panel (base for anchored panels),
-              BarWidget (clickable bar item), BarText, VolSlider, MeterRow, NetRow
+lib/          shared components: Panel (base for anchored panels), keyboard-aware
+              PanelButton/PanelToggle/PanelSlider/PanelChoiceGroup, BarWidget,
+              BarText, MeterRow, NetRow
 bar/          Bar.qml + one file per widget
 panels/       anchored panels (derive from lib/Panel) + managed centered panels
               (Launcher, Clipboard, Wallpaper) + passive NotificationPopups
@@ -45,7 +46,8 @@ is the sole lifecycle authority and keeps one managed panel open globally.
   changed only in the managed methods. Registration and bar-window
   registration must be paired with destruction-time unregister calls.
 - Every managed surface uses OnDemand keyboard focus, focuses its initial
-  scope or input when opened, and has a window-level Escape shortcut.
+  control through `initialFocusItem` when opened, and has a window-level Escape
+  shortcut. Tab and Shift+Tab use Qt's native focus chain.
 - Each focus grab includes the open surface and every registered bar window.
   An application click outside that set closes the surface; bar widgets remain
   reachable in one click across monitors. Focus loss, pointer movement, and
@@ -60,8 +62,12 @@ is the sole lifecycle authority and keeps one managed panel open globally.
 - Passive `PanelWindow` surfaces such as notification toasts, tooltips, and
   indicators stay outside PanelManager and do not take keyboard focus.
 
-Future keyboard work should use reusable focusable controls such as
-`PanelButton`, `PanelToggle`, and `PanelSlider` with real focus traversal. Do
+Interactive panel controls use `PanelButton`, `PanelToggle`, and `PanelSlider`.
+Focus styling appears only after keyboard input and clears on pointer use.
+Down follows Tab and Up follows Shift+Tab. Option groups are one vertical focus
+stop; Left/Right selects within them and Enter or Space activates the choice.
+Buttons and toggles activate with Enter or Space. Sliders use Left/Right,
+Page Up and Page Down, Home, and End. Keep focus behavior local to controls—do
 not add a keyboard-only panel subtype or panel-wide index management.
 
 ## Notifications

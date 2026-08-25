@@ -9,31 +9,32 @@ Panel {
     panelName: "notifications"
     panelWidth: 420
     contentSpacing: 8
+    initialFocusItem: dndSwitch
 
-    property int selected: 0
-    property int expandedIndex: -1
     property bool historyOpen: false
 
     onOpening: {
-        selected = 0
-        expandedIndex = -1
         historyOpen = false
         Notifs.clearDndMissed()
     }
 
-    onKeyPressed: event => {
-        if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab || event.key === Qt.Key_J)
-            selected = Math.min(selected + 1, list.count - 1)
-        else if (event.key === Qt.Key_Up || event.key === Qt.Key_K)
-            selected = Math.max(selected - 1, 0)
-        else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)
-            expandedIndex = expandedIndex === selected ? -1 : selected
-        else if (event.key === Qt.Key_Delete || event.key === Qt.Key_X)
-            list.model[selected]?.dismiss()
-        else
-            return
-        list.positionViewAtIndex(Math.max(0, selected), ListView.Contain)
-        event.accepted = true
+    function focusHeader() {
+        Qt.callLater(() => dndSwitch.forceActiveFocus(Qt.TabFocusReason))
+    }
+
+    function dismiss(notification) {
+        notification.dismiss()
+        focusHeader()
+    }
+
+    function dismissAll() {
+        Notifs.dismissAll()
+        focusHeader()
+    }
+
+    function deleteHistory(index) {
+        Notifs.deleteFromHistory(index)
+        focusHeader()
     }
 
     Item {
@@ -48,14 +49,16 @@ Panel {
         }
 
         // DND toggle
-        MouseArea {
+        PanelToggle {
             id: dndSwitch
             width: 34
             height: 16
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: clearBtn.left
             anchors.rightMargin: 12
-            onClicked: Notifs.toggleDnd()
+            checked: Notifs.dnd
+            accessibleName: "Do not disturb"
+            onToggled: Notifs.toggleDnd()
 
             Rectangle {
                 anchors.fill: parent
@@ -79,18 +82,18 @@ Panel {
             }
         }
 
-        MouseArea {
+        PanelButton {
             id: clearBtn
             width: 20
             height: parent.height
             anchors.right: parent.right
-            hoverEnabled: true
-            onClicked: Notifs.dismissAll()
+            accessibleName: "Dismiss all notifications"
+            onClicked: root.dismissAll()
             BarText {
                 anchors.centerIn: parent
                 text: "󰎟"
                 font.pixelSize: Theme.fontSize
-                color: clearBtn.containsMouse ? Theme.mauve : Theme.overlay1
+                color: clearBtn.hovered || clearBtn.showFocus ? Theme.mauve : Theme.overlay1
             }
         }
     }
@@ -110,30 +113,27 @@ Panel {
         spacing: 6
         model: Notifs.tracked.values.slice().reverse()
 
-        delegate: Item {
+        delegate: PanelButton {
             id: row
             required property var modelData
             required property int index
 
-            readonly property bool expanded: root.expandedIndex === index
-            readonly property bool isSelected: root.selected === index
+            property bool expanded: false
 
             width: ListView.view.width
             height: inner.implicitHeight + 12
-
-            Rectangle {
-                anchors.fill: parent
-                color: row.isSelected ? Qt.alpha(Theme.surface0, 0.7) : "transparent"
-                border.color: Qt.alpha(Notifs.urgencyColor(row.modelData.urgency), 0.5)
-                border.width: 1
+            accessibleName: row.modelData.appName + " " + row.modelData.summary
+            borderColor: Qt.alpha(Notifs.urgencyColor(row.modelData.urgency), 0.5)
+            onClicked: expanded = !expanded
+            onActiveFocusChanged: {
+                if (activeFocus)
+                    list.positionViewAtIndex(index, ListView.Contain)
             }
-
-            MouseArea {
-                id: rowArea
-                anchors.fill: parent
-                hoverEnabled: true
-                onEntered: root.selected = row.index
-                onClicked: root.expandedIndex = row.expanded ? -1 : row.index
+            onKeyPressed: event => {
+                if (event.key === Qt.Key_Delete || event.key === Qt.Key_X) {
+                    root.dismiss(row.modelData)
+                    event.accepted = true
+                }
             }
 
             Column {
@@ -166,18 +166,18 @@ Panel {
                         color: Theme.overlay0
                         text: Notifs.timeOf(row.modelData)
                     }
-                    MouseArea {
+                    PanelButton {
                         id: closeBtn
                         width: 16
                         height: parent.height
                         anchors.right: parent.right
-                        hoverEnabled: true
-                        onClicked: row.modelData.dismiss()
+                        accessibleName: "Dismiss notification"
+                        onClicked: root.dismiss(row.modelData)
                         BarText {
                             anchors.centerIn: parent
                             text: "✕"
                             font.pixelSize: Theme.fontSizeSmall
-                            color: closeBtn.containsMouse ? Theme.red : Theme.overlay1
+                            color: closeBtn.hovered || closeBtn.showFocus ? Theme.red : Theme.overlay1
                         }
                     }
                 }
@@ -200,22 +200,15 @@ Panel {
                     Repeater {
                         model: row.modelData.actions
 
-                        MouseArea {
+                        PanelButton {
                             id: actBtn
                             required property var modelData
 
                             width: actText.implicitWidth + 16
                             height: 20
-                            hoverEnabled: true
+                            accessibleName: actBtn.modelData.text
+                            borderColor: Theme.surface1
                             onClicked: actBtn.modelData.invoke()
-
-                            Rectangle {
-                                anchors.fill: parent
-                                color: actBtn.containsMouse
-                                    ? Qt.alpha(Theme.mauve, 0.25) : Qt.alpha(Theme.surface0, 0.7)
-                                border.color: actBtn.containsMouse ? Theme.mauve : Theme.surface1
-                                border.width: 1
-                            }
                             BarText {
                                 id: actText
                                 anchors.centerIn: parent
@@ -234,12 +227,13 @@ Panel {
         height: 18
         visible: Notifs.history.length > 0
 
-        MouseArea {
+        PanelButton {
             id: histToggle
             anchors.left: parent.left
             width: histLabel.implicitWidth
             height: parent.height
-            hoverEnabled: true
+            accessibleName: root.historyOpen ? "Collapse notification history"
+                : "Expand notification history"
             onClicked: root.historyOpen = !root.historyOpen
 
             BarText {
@@ -248,23 +242,26 @@ Panel {
                 text: (root.historyOpen ? "▾ " : "▸ ")
                     + "history (" + Notifs.history.length + ")"
                 font.pixelSize: Theme.fontSizeSmall
-                color: histToggle.containsMouse ? Theme.text : Theme.overlay1
+                color: histToggle.hovered || histToggle.showFocus ? Theme.text : Theme.overlay1
             }
         }
 
-        MouseArea {
+        PanelButton {
             id: histClearBtn
             visible: root.historyOpen
             width: 20
             height: parent.height
             anchors.right: parent.right
-            hoverEnabled: true
-            onClicked: Notifs.clearHistory()
+            accessibleName: "Clear notification history"
+            onClicked: {
+                Notifs.clearHistory()
+                root.focusHeader()
+            }
             BarText {
                 anchors.centerIn: parent
                 text: "󰎟"
                 font.pixelSize: 13
-                color: histClearBtn.containsMouse ? Theme.mauve : Theme.overlay1
+                color: histClearBtn.hovered || histClearBtn.showFocus ? Theme.mauve : Theme.overlay1
             }
         }
     }
@@ -278,7 +275,7 @@ Panel {
         spacing: 6
         model: Notifs.history
 
-        delegate: Item {
+        delegate: PanelButton {
             id: histRow
             required property var modelData
             required property int index
@@ -287,17 +284,18 @@ Panel {
 
             width: ListView.view.width
             height: histInner.implicitHeight + 12
-
-            Rectangle {
-                anchors.fill: parent
-                color: "transparent"
-                border.color: Qt.alpha(Notifs.urgencyColor(histRow.modelData.urgency), 0.2)
-                border.width: 1
+            accessibleName: histRow.modelData.appName + " " + histRow.modelData.summary
+            borderColor: Qt.alpha(Notifs.urgencyColor(histRow.modelData.urgency), 0.2)
+            onClicked: expanded = !expanded
+            onActiveFocusChanged: {
+                if (activeFocus)
+                    histList.positionViewAtIndex(index, ListView.Contain)
             }
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked: histRow.expanded = !histRow.expanded
+            onKeyPressed: event => {
+                if (event.key === Qt.Key_Delete || event.key === Qt.Key_X) {
+                    root.deleteHistory(histRow.index)
+                    event.accepted = true
+                }
             }
 
             Column {
@@ -331,18 +329,18 @@ Panel {
                         color: Theme.overlay0
                         text: Qt.formatTime(new Date(histRow.modelData.time), "hh:mm")
                     }
-                    MouseArea {
+                    PanelButton {
                         id: histDelBtn
                         width: 16
                         height: parent.height
                         anchors.right: parent.right
-                        hoverEnabled: true
-                        onClicked: Notifs.deleteFromHistory(histRow.index)
+                        accessibleName: "Delete history entry"
+                        onClicked: root.deleteHistory(histRow.index)
                         BarText {
                             anchors.centerIn: parent
                             text: "✕"
                             font.pixelSize: Theme.fontSizeSmall
-                            color: histDelBtn.containsMouse ? Theme.red : Theme.overlay1
+                            color: histDelBtn.hovered || histDelBtn.showFocus ? Theme.red : Theme.overlay1
                         }
                     }
                 }

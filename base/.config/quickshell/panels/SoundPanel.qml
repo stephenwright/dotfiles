@@ -10,6 +10,7 @@ Panel {
     panelName: "sound"
     panelWidth: 320
     contentSpacing: 8
+    initialFocusItem: muteBtn.enabled ? muteBtn : mixerBtn
 
     readonly property var sink: Pipewire.defaultAudioSink
     readonly property var source: Pipewire.defaultAudioSource
@@ -29,6 +30,22 @@ Panel {
         return (n.properties && n.properties["application.name"]) || label(n)
     }
 
+    function recoverFocus(wasFocused) {
+        if (wasFocused)
+            focusRecovery.restart()
+    }
+
+    Timer {
+        id: focusRecovery
+        interval: 0
+        onTriggered: {
+            if (!root.visible)
+                return
+            const target = muteBtn.enabled ? muteBtn : mixerBtn
+            target.forceActiveFocus(Qt.TabFocusReason)
+        }
+    }
+
     // output
     Item {
         width: parent.width
@@ -39,12 +56,12 @@ Panel {
             font.pixelSize: Theme.fontSizeSmall
             color: Theme.overlay1
         }
-        MouseArea {
+        PanelButton {
             id: mixerBtn
             width: 20
             height: parent.height
             anchors.right: parent.right
-            hoverEnabled: true
+            accessibleName: "Open volume mixer"
             onClicked: {
                 root.close()
                 Quickshell.execDetached(["pavucontrol"])
@@ -53,7 +70,7 @@ Panel {
                 anchors.centerIn: parent
                 text: ""
                 font.pixelSize: Theme.fontSize
-                color: mixerBtn.containsMouse ? Theme.mauve : Theme.overlay1
+                color: mixerBtn.hovered || mixerBtn.showFocus ? Theme.mauve : Theme.overlay1
             }
         }
     }
@@ -62,11 +79,12 @@ Panel {
         width: parent.width
         spacing: 10
 
-        MouseArea {
+        PanelButton {
             id: muteBtn
             width: 24
             height: 20
-            hoverEnabled: true
+            enabled: root.sink?.audio != null
+            accessibleName: root.sink?.audio?.muted ? "Unmute output" : "Mute output"
             onClicked: {
                 if (root.sink?.audio)
                     root.sink.audio.muted = !root.sink.audio.muted
@@ -75,13 +93,15 @@ Panel {
                 anchors.centerIn: parent
                 text: root.sink?.audio?.muted ? "󰝟" : "󰕾"
                 color: root.sink?.audio?.muted ? Theme.red
-                     : muteBtn.containsMouse ? Theme.mauve : Theme.text
+                     : muteBtn.hovered || muteBtn.showFocus ? Theme.mauve : Theme.text
             }
         }
 
-        VolSlider {
+        PanelSlider {
             width: parent.width - 24 - 40 - 20
             value: root.sink?.audio?.volume ?? 0
+            enabled: root.sink?.audio != null
+            accessibleName: "Output volume"
             onMoved: v => {
                 if (root.sink?.audio)
                     root.sink.audio.volume = v
@@ -108,7 +128,7 @@ Panel {
     Repeater {
         model: root.sinks.length > 1 ? root.sinks : []
 
-        MouseArea {
+        PanelButton {
             id: devRow
             required property var modelData
 
@@ -116,13 +136,9 @@ Panel {
 
             width: parent.width
             height: 24
-            hoverEnabled: true
+            accessibleName: "Use output " + root.label(modelData)
             onClicked: Pipewire.preferredDefaultAudioSink = modelData
-
-            Rectangle {
-                anchors.fill: parent
-                color: devRow.containsMouse ? Qt.alpha(Theme.surface0, 0.7) : "transparent"
-            }
+            Component.onDestruction: root.recoverFocus(activeFocus)
             BarText {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
@@ -148,11 +164,12 @@ Panel {
         width: parent.width
         spacing: 10
 
-        MouseArea {
+        PanelButton {
             id: micMuteBtn
             width: 24
             height: 20
-            hoverEnabled: true
+            enabled: root.source?.audio != null
+            accessibleName: root.source?.audio?.muted ? "Unmute input" : "Mute input"
             onClicked: {
                 if (root.source?.audio)
                     root.source.audio.muted = !root.source.audio.muted
@@ -161,13 +178,15 @@ Panel {
                 anchors.centerIn: parent
                 text: root.source?.audio?.muted ? "󰍭" : "󰍬"
                 color: root.source?.audio?.muted ? Theme.red
-                     : micMuteBtn.containsMouse ? Theme.mauve : Theme.text
+                     : micMuteBtn.hovered || micMuteBtn.showFocus ? Theme.mauve : Theme.text
             }
         }
 
-        VolSlider {
+        PanelSlider {
             width: parent.width - 24 - 40 - 20
             value: root.source?.audio?.volume ?? 0
+            enabled: root.source?.audio != null
+            accessibleName: "Input volume"
             onMoved: v => {
                 if (root.source?.audio)
                     root.source.audio.volume = v
@@ -218,7 +237,7 @@ Panel {
     Repeater {
         model: root.sources.length > 1 ? root.sources : []
 
-        MouseArea {
+        PanelButton {
             id: srcRow
             required property var modelData
 
@@ -226,13 +245,9 @@ Panel {
 
             width: parent.width
             height: 24
-            hoverEnabled: true
+            accessibleName: "Use input " + root.label(modelData)
             onClicked: Pipewire.preferredDefaultAudioSource = modelData
-
-            Rectangle {
-                anchors.fill: parent
-                color: srcRow.containsMouse ? Qt.alpha(Theme.surface0, 0.7) : "transparent"
-            }
+            Component.onDestruction: root.recoverFocus(activeFocus)
             BarText {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
@@ -272,20 +287,25 @@ Panel {
                 color: Theme.subtext0
             }
 
-            VolSlider {
+            PanelSlider {
+                id: appSlider
                 width: parent.width - 110 - 24 - 20
                 value: appRow.modelData.audio?.volume ?? 0
+                enabled: appRow.modelData.audio != null
+                accessibleName: root.appLabel(appRow.modelData) + " volume"
                 onMoved: v => {
                     if (appRow.modelData.audio)
                         appRow.modelData.audio.volume = v
                 }
             }
 
-            MouseArea {
+            PanelButton {
                 id: appMute
                 width: 24
                 height: 20
-                hoverEnabled: true
+                enabled: appRow.modelData.audio != null
+                accessibleName: (appRow.modelData.audio?.muted ? "Unmute " : "Mute ")
+                    + root.appLabel(appRow.modelData)
                 onClicked: {
                     if (appRow.modelData.audio)
                         appRow.modelData.audio.muted = !appRow.modelData.audio.muted
@@ -295,9 +315,12 @@ Panel {
                     text: appRow.modelData.audio?.muted ? "󰝟" : "󰕾"
                     font.pixelSize: Theme.fontSizeSmall
                     color: appRow.modelData.audio?.muted ? Theme.red
-                         : appMute.containsMouse ? Theme.mauve : Theme.overlay1
+                         : appMute.hovered || appMute.showFocus ? Theme.mauve : Theme.overlay1
                 }
             }
+
+            Component.onDestruction: root.recoverFocus(
+                appSlider.activeFocus || appMute.activeFocus)
         }
     }
 }
