@@ -14,8 +14,8 @@ services/     singletons only — the one dir with a hand-written qmldir.
               Caffeine (stay-awake state; toggle lives in DisplayPanel,
               Display glyph tints green while active)
 lib/          shared components: Panel (base for anchored panels), keyboard-aware
-              PanelButton/PanelToggle/PanelSlider/PanelChoiceGroup, BarWidget,
-              BarText, MeterRow, NetRow
+              PanelButton/PanelToggle/PanelSlider, BarWidget, BarText, MeterRow,
+              NetRow
 bar/          Bar.qml + one file per widget
 panels/       anchored panels (derive from lib/Panel) + managed centered panels
               (Launcher, Clipboard, Wallpaper) + passive NotificationPopups
@@ -64,11 +64,13 @@ is the sole lifecycle authority and keeps one managed panel open globally.
 
 Interactive panel controls use `PanelButton`, `PanelToggle`, and `PanelSlider`.
 Focus styling appears only after keyboard input and clears on pointer use.
-Down follows Tab and Up follows Shift+Tab. Option groups are one vertical focus
-stop; Left/Right selects within them and Enter or Space activates the choice.
+Down follows Tab and Up follows Shift+Tab. Each option is a focus stop; grid
+options also use Left/Right. Enter or Space activates the focused item.
 Buttons and toggles activate with Enter or Space. Sliders use Left/Right,
 Page Up and Page Down, Home, and End. Keep focus behavior local to controls—do
 not add a keyboard-only panel subtype or panel-wide index management.
+Wallpaper uses GridView's native arrow navigation and Enter/Space activation;
+Launcher and Clipboard keep text-input-driven result navigation.
 
 ## Notifications
 

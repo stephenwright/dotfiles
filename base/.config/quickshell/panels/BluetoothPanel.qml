@@ -8,21 +8,29 @@ Panel {
 
     panelName: "bluetooth"
     panelWidth: 420
+    initialFocusItem: powerRow
 
     // anchorItem is the BluetoothStatus bar widget; reuse its adapter lookup
     readonly property var adapter: anchorItem ? anchorItem.adapter : null
 
-    MouseArea {
+    function recoverFocus() {
+        focusRecovery.restart()
+    }
+
+    Timer {
+        id: focusRecovery
+        interval: 0
+        onTriggered: if (root.visible) powerRow.forceActiveFocus(Qt.TabFocusReason)
+    }
+
+    PanelToggle {
         id: powerRow
         width: parent.width
         height: 26
-        hoverEnabled: true
-        onClicked: if (root.adapter) root.adapter.enabled = !root.adapter.enabled
-
-        Rectangle {
-            anchors.fill: parent
-            color: powerRow.containsMouse ? Qt.alpha(Theme.surface0, 0.7) : "transparent"
-        }
+        enabled: root.adapter !== null
+        checked: root.adapter?.enabled ?? false
+        accessibleName: "Bluetooth"
+        onToggled: if (root.adapter) root.adapter.enabled = !root.adapter.enabled
         BarText {
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
@@ -49,7 +57,7 @@ Panel {
     Repeater {
         model: root.adapter && root.adapter.enabled ? root.adapter.devices : null
 
-        MouseArea {
+        PanelButton {
             id: dev
             required property var modelData
 
@@ -57,12 +65,14 @@ Panel {
             visible: modelData.paired || modelData.bonded
             width: parent.width
             height: 26
-            hoverEnabled: true
+            enabled: modelData.state !== BluetoothDeviceState.Connecting
+                && modelData.state !== BluetoothDeviceState.Disconnecting
+            accessibleName: (modelData.connected ? "Disconnect " : "Connect ")
+                + (modelData.name || modelData.deviceName)
             onClicked: modelData.connected ? modelData.disconnect() : modelData.connect()
-
-            Rectangle {
-                anchors.fill: parent
-                color: dev.containsMouse ? Qt.alpha(Theme.surface0, 0.7) : "transparent"
+            Component.onDestruction: {
+                if (activeFocus)
+                    root.recoverFocus()
             }
             BarText {
                 anchors.verticalCenter: parent.verticalCenter

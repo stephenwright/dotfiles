@@ -16,6 +16,16 @@ Panel {
 
     onOpening: reset()
 
+    onKeyPressed: event => {
+        if (event.key === Qt.Key_Left || event.key === Qt.Key_Up)
+            page(-1)
+        else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down)
+            page(1)
+        else
+            return
+        event.accepted = true
+    }
+
     function reset() {
         const now = new Date()
         year = now.getFullYear()
@@ -64,6 +74,7 @@ Panel {
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
         property real wheelAcc: 0
         onWheel: event => {
+            PanelManager.keyboardMode = false
             wheelAcc += event.angleDelta.y !== 0 ? event.angleDelta.y : event.pixelDelta.y * 2.5
             while (wheelAcc >= 120) {
                 wheelAcc -= 120

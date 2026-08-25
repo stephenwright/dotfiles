@@ -15,7 +15,7 @@ Panel {
     readonly property var profileOpts: {
         const l = [
             { label: "saver", value: PowerProfile.PowerSaver },
-            { label: "balanced", value: PowerProfile.Balanced }
+            { label: "balanced", value: PowerProfile.Balanced },
         ]
         if (PowerProfiles.hasPerformanceProfile)
             l.push({ label: "performance", value: PowerProfile.Performance })
@@ -109,33 +109,36 @@ Panel {
         spacing: 6
 
         Repeater {
+            id: profiles
             model: root.profileOpts
 
-            MouseArea {
+            PanelButton {
                 id: profBtn
                 required property var modelData
 
                 readonly property bool current: PowerProfiles.profile === modelData.value
 
-                width: (root.contentWidth - 6 * (root.profileOpts.length - 1)) / root.profileOpts.length
+                width: (root.contentWidth - 6 * (root.profileOpts.length - 1))
+                    / root.profileOpts.length
                 height: 26
-                hoverEnabled: true
+                accessibleName: "Power profile " + modelData.label
+                horizontalNavigation: true
+                backgroundColor: current ? Qt.alpha(Theme.mauve, 0.25) : "transparent"
+                borderColor: current ? Theme.mauve : Theme.surface1
                 onClicked: PowerProfiles.profile = modelData.value
 
-                Rectangle {
-                    anchors.fill: parent
-                    color: profBtn.current ? Qt.alpha(Theme.mauve, 0.25)
-                         : profBtn.containsMouse ? Qt.alpha(Theme.surface0, 0.7)
-                         : "transparent"
-                    border.color: profBtn.current ? Theme.mauve : Theme.surface1
-                    border.width: 1
-                }
                 BarText {
                     anchors.centerIn: parent
                     text: profBtn.modelData.label
-                    color: profBtn.current ? Theme.mauve : Theme.text
+                    color: profBtn.current || profBtn.showFocus ? Theme.mauve : Theme.text
                 }
             }
         }
+    }
+
+    onOpening: {
+        const index = root.profileOpts.findIndex(
+            option => option.value === PowerProfiles.profile)
+        initialFocusItem = profiles.itemAt(Math.max(0, index))
     }
 }

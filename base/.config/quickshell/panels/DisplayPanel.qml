@@ -161,13 +161,56 @@ Panel {
         color: Theme.overlay1
     }
 
-    PanelChoiceGroup {
-        width: parent.width
+    Grid {
         columns: 2
-        options: root.profiles
-        accessibleName: "Profile"
-        optionCurrent: option => option === root.profile
-        onChosen: option => root.setProfile(option)
+        spacing: 6
+
+        Repeater {
+            model: root.profiles
+
+            PanelButton {
+                id: profBtn
+                required property var modelData
+
+                readonly property bool current: modelData === root.profile
+
+                width: (root.contentWidth - 6) / 2
+                height: 26
+                accessibleName: "Profile " + modelData
+                horizontalNavigation: true
+                backgroundColor: current ? Qt.alpha(Theme.mauve, 0.25) : "transparent"
+                borderColor: current ? Theme.mauve : Theme.surface1
+                onClicked: root.setProfile(modelData)
+
+                BarText {
+                    anchors.centerIn: parent
+                    text: profBtn.modelData
+                    color: profBtn.current || profBtn.showFocus ? Theme.mauve : Theme.text
+                }
+            }
+        }
+    }
+
+    Component {
+        id: captureBtn
+
+        PanelButton {
+            id: btn
+            required property var modelData
+
+            width: (root.contentWidth - 12) / 3
+            height: 26
+            accessibleName: modelData.label
+            horizontalNavigation: true
+            borderColor: Theme.surface1
+            onClicked: modelData.run()
+
+            BarText {
+                anchors.centerIn: parent
+                text: btn.modelData.label
+                color: btn.hovered || btn.showFocus ? Theme.mauve : Theme.text
+            }
+        }
     }
 
     BarText {
@@ -176,17 +219,18 @@ Panel {
         color: Theme.overlay1
     }
 
-    PanelChoiceGroup {
-        width: parent.width
+    Grid {
         columns: 3
-        options: [
-            { label: "region", run: () => root.shot("region") },
-            { label: "window", run: () => root.shot("window") },
-            { label: "screen", run: () => root.shot("output") },
-        ]
-        accessibleName: "Screenshot"
-        optionText: option => option.label
-        onChosen: option => option.run()
+        spacing: 6
+
+        Repeater {
+            model: [
+                { label: "region", run: () => root.shot("region") },
+                { label: "window", run: () => root.shot("window") },
+                { label: "screen", run: () => root.shot("output") },
+            ]
+            delegate: captureBtn
+        }
     }
 
     BarText {
@@ -195,16 +239,17 @@ Panel {
         color: Theme.overlay1
     }
 
-    PanelChoiceGroup {
-        width: parent.width
+    Grid {
         columns: 3
-        options: [
-            { label: "gif", run: () => root.record("gif") },
-            { label: "mp4", run: () => root.record("mp4") },
-            { label: "webm", run: () => root.record("webm") },
-        ]
-        accessibleName: "Record"
-        optionText: option => option.label
-        onChosen: option => option.run()
+        spacing: 6
+
+        Repeater {
+            model: [
+                { label: "gif", run: () => root.record("gif") },
+                { label: "mp4", run: () => root.record("mp4") },
+                { label: "webm", run: () => root.record("webm") },
+            ]
+            delegate: captureBtn
+        }
     }
 }

@@ -38,7 +38,8 @@ PanelWindow {
         listProc.running = true
         curProc.running = true
         visible = true
-        keys.forceActiveFocus()
+        PanelManager.keyboardMode = false
+        grid.forceActiveFocus(Qt.OtherFocusReason)
     }
 
     function managedClose() {
@@ -51,12 +52,20 @@ PanelWindow {
         Quickshell.execDetached([Quickshell.env("HOME") + "/bin/stew", "wall", "set", path])
     }
 
+    function syncSelection() {
+        const index = walls.indexOf(current)
+        grid.currentIndex = index >= 0 ? index : walls.length ? 0 : -1
+    }
+
     Process {
         id: listProc
         command: ["sh", "-c",
             "find ~/wallpaper -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \\) | sort"]
         stdout: StdioCollector {
-            onStreamFinished: root.walls = this.text.trim().split("\n").filter(l => l)
+            onStreamFinished: {
+                root.walls = this.text.trim().split("\n").filter(l => l)
+                root.syncSelection()
+            }
         }
     }
 
@@ -64,7 +73,10 @@ PanelWindow {
         id: curProc
         command: ["sh", "-c", "~/bin/stew wall current"]
         stdout: StdioCollector {
-            onStreamFinished: root.current = this.text.trim()
+            onStreamFinished: {
+                root.current = this.text.trim()
+                root.syncSelection()
+            }
         }
     }
 
@@ -88,66 +100,84 @@ PanelWindow {
         border.color: Theme.mauve
         border.width: 2
 
-        Item {
-            id: keys
+        GridView {
+            id: grid
             anchors.fill: parent
-            focus: true
-            GridView {
-                id: grid
-                anchors.fill: parent
-                anchors.margins: 8
-                clip: true
-                cellWidth: 200
-                cellHeight: 130
-                model: root.walls
+            anchors.margins: 8
+            clip: true
+            activeFocusOnTab: true
+            keyNavigationEnabled: true
+            keyNavigationWraps: false
+            cellWidth: 200
+            cellHeight: 130
+            model: root.walls
 
-                delegate: MouseArea {
-                    id: cell
-                    required property var modelData
+            Keys.onPressed: event => {
+                PanelManager.keyboardMode = true
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
+                        || event.key === Qt.Key_Space) {
+                    const path = root.walls[grid.currentIndex]
+                    if (path)
+                        root.apply(path)
+                    event.accepted = true
+                }
+            }
 
-                    readonly property bool isCurrent: modelData === root.current
+            delegate: MouseArea {
+                id: cell
+                required property var modelData
+                required property int index
 
-                    width: grid.cellWidth
-                    height: grid.cellHeight
-                    hoverEnabled: true
-                    onClicked: root.apply(modelData)
+                readonly property bool isCurrent: modelData === root.current
+                readonly property bool isSelected: GridView.isCurrentItem
+                    && PanelManager.keyboardMode
+
+                width: grid.cellWidth
+                height: grid.cellHeight
+                hoverEnabled: true
+                onPressed: PanelManager.keyboardMode = false
+                onClicked: {
+                    grid.currentIndex = index
+                    root.apply(modelData)
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.margins: 4
+                    color: "transparent"
+                    border.color: cell.isSelected ? Theme.sapphire
+                        : cell.isCurrent ? Theme.mauve
+                        : cell.containsMouse ? Theme.overlay1 : Theme.surface1
+                    border.width: cell.isCurrent || cell.isSelected ? 2 : 1
+
+                    Image {
+                        anchors.fill: parent
+                        anchors.margins: 3
+                        asynchronous: true
+                        fillMode: Image.PreserveAspectCrop
+                        sourceSize.width: 200
+                        source: "file://" + cell.modelData
+                    }
 
                     Rectangle {
-                        anchors.fill: parent
-                        anchors.margins: 4
-                        color: "transparent"
-                        border.color: cell.isCurrent ? Theme.mauve
-                            : cell.containsMouse ? Theme.overlay1 : Theme.surface1
-                        border.width: cell.isCurrent ? 2 : 1
-
-                        Image {
-                            anchors.fill: parent
-                            anchors.margins: 3
-                            asynchronous: true
-                            fillMode: Image.PreserveAspectCrop
-                            sourceSize.width: 200
-                            source: "file://" + cell.modelData
+                        anchors {
+                            left: parent.left
+                            right: parent.right
+                            bottom: parent.bottom
+                            margins: 3
                         }
+                        height: 16
+                        color: Qt.rgba(0, 0, 0, 0.6)
 
-                        Rectangle {
-                            anchors {
-                                left: parent.left
-                                right: parent.right
-                                bottom: parent.bottom
-                                margins: 3
-                            }
-                            height: 16
-                            color: Qt.rgba(0, 0, 0, 0.6)
-
-                            BarText {
-                                anchors.centerIn: parent
-                                width: parent.width - 8
-                                horizontalAlignment: Text.AlignHCenter
-                                elide: Text.ElideMiddle
-                                font.pixelSize: Theme.fontSizeHint
-                                text: cell.modelData.split("/").pop()
-                                color: cell.isCurrent ? Theme.mauve : Theme.subtext0
-                            }
+                        BarText {
+                            anchors.centerIn: parent
+                            width: parent.width - 8
+                            horizontalAlignment: Text.AlignHCenter
+                            elide: Text.ElideMiddle
+                            font.pixelSize: Theme.fontSizeHint
+                            text: cell.modelData.split("/").pop()
+                            color: cell.isSelected ? Theme.sapphire
+                                : cell.isCurrent ? Theme.mauve : Theme.subtext0
                         }
                     }
                 }

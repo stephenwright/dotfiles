@@ -7,6 +7,7 @@ Panel {
     id: root
 
     panelName: "system"
+    initialFocusItem: monRow
 
     BarText {
         text: "System"
@@ -57,26 +58,22 @@ Panel {
         barColor: Theme.levelColor(frac, 0.7, 0.8)
     }
 
-    MouseArea {
+    PanelButton {
         id: monRow
         width: parent.width
         height: 26
-        hoverEnabled: true
+        accessibleName: "Open btop"
         onClicked: {
             root.close()
             Quickshell.execDetached(Settings.systemMonitor)
         }
 
-        Rectangle {
-            anchors.fill: parent
-            color: monRow.containsMouse ? Qt.alpha(Theme.surface0, 0.7) : "transparent"
-        }
         BarText {
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
             anchors.leftMargin: 4
             text: " Open btop"
-            color: monRow.containsMouse ? Theme.mauve : Theme.text
+            color: monRow.hovered || monRow.showFocus ? Theme.mauve : Theme.text
         }
     }
 }
