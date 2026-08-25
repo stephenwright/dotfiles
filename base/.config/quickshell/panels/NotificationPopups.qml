@@ -38,7 +38,7 @@ PanelWindow {
 
                 width: parent.width
                 implicitHeight: body.implicitHeight + 24
-                color: Theme.base
+                color: Theme.panelBg
                 border.color: Notifs.urgencyColor(modelData.urgency)
                 border.width: 2
 

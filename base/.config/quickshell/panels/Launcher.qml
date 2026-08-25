@@ -139,7 +139,7 @@ PanelWindow {
 
     Rectangle {
         anchors.fill: parent
-        color: Theme.base
+        color: Theme.panelBg
         border.color: Theme.mauve
         border.width: 2
 
