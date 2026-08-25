@@ -251,6 +251,15 @@ hl.window_rule({
     suppress_event = "maximize",
 })
 
+-- opt-in class for floating window
+hl.window_rule({
+    name  = "float-center",
+    match = { class = "^(float-center)$" },
+    float = true,
+    size  = "60% 60%",
+    move  = "20% 20%",
+})
+
 -- zoom — main meeting tiles; popups/toolbars float
 hl.window_rule({
     name  = "zoom-float-popups",

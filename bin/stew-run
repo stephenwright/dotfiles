@@ -4,10 +4,19 @@
 
 set -euo pipefail
 
+term="alacritty --class float-center -e"
 cmd=$(fuzzel --dmenu --prompt-only="$ ")
 
 if [ -n "$cmd" ]; then
-    output=$(zsh -l -c "source ~/.profile && $cmd" 2>&1)
-    [ -n "$output" ] && notify-send "\$ $cmd" "$output"
+    # -i so ~/.zshrc runs first: aliases must exist before "$cmd" is parsed
+    case $cmd in
+        # leading ';' runs in a terminal that stays open
+        \;*)
+            $term zsh -ic "${cmd#;}; echo; read -k1 '?[any key] '"
+            ;;
+        *)
+            output=$(zsh -ic "$cmd" 2>&1)
+            [ -n "$output" ] && notify-send "\$ $cmd" "$output"
+            ;;
+    esac
 fi
-
