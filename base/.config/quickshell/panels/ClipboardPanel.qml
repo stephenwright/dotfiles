@@ -25,11 +25,18 @@ PanelWindow {
     property var results: []
     property int selected: 0
 
+    Component.onCompleted: PanelManager.register("clipboard", root)
+    Component.onDestruction: PanelManager.unregister("clipboard", root)
+
     function toggle() {
-        visible ? hide() : show()
+        PanelManager.toggle(root)
     }
 
-    function show() {
+    function close() {
+        PanelManager.close(root)
+    }
+
+    function managedOpen() {
         input.text = ""
         entries = []
         results = []
@@ -38,7 +45,7 @@ PanelWindow {
         input.forceActiveFocus()
     }
 
-    function hide() {
+    function managedClose() {
         visible = false
     }
 
@@ -81,7 +88,7 @@ PanelWindow {
         const e = results[selected]
         if (!e)
             return
-        hide()
+        close()
         Quickshell.execDetached(["sh", "-c", "cliphist decode " + e.id + " | wl-copy"])
     }
 
@@ -96,8 +103,15 @@ PanelWindow {
     HyprlandFocusGrab {
         // wait for the surface to be mapped, or the grab registers nothing
         active: root.visible && root.backingWindowVisible
-        windows: [root]
-        onCleared: root.hide()
+        windows: PanelManager.grabWindows(root)
+        onCleared: PanelManager.dismissed(root)
+    }
+
+    Shortcut {
+        sequence: "Escape"
+        enabled: root.visible
+        context: Qt.WindowShortcut
+        onActivated: root.close()
     }
 
     Rectangle {
@@ -128,9 +142,7 @@ PanelWindow {
                     onTextChanged: root.refilter()
 
                     Keys.onPressed: event => {
-                        if (event.key === Qt.Key_Escape) {
-                            root.hide()
-                        } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
+                        if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
                             root.selected = Math.min(root.selected + 1, root.results.length - 1)
                         } else if (event.key === Qt.Key_Up) {
                             root.selected = Math.max(root.selected - 1, 0)

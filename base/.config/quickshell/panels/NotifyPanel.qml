@@ -9,7 +9,6 @@ Panel {
     panelName: "notifications"
     panelWidth: 420
     contentSpacing: 8
-    wantsKeyboard: true
 
     property int selected: 0
     property int expandedIndex: -1

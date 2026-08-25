@@ -29,9 +29,11 @@ BarWidget {
     onScrolledDown: setVol(vol - 0.05)
     onClicked: event => {
         if (event.button === Qt.RightButton) {
+            PanelManager.close()
             if (sink?.audio)
                 sink.audio.muted = !sink.audio.muted
         } else if (event.button === Qt.MiddleButton) {
+            PanelManager.close()
             Quickshell.execDetached(["pavucontrol"])
         } else {
             panel.toggle()

@@ -28,10 +28,12 @@ BarWidget {
         : Theme.red
 
     onClicked: event => {
-        if (event.button === Qt.RightButton)
+        if (event.button === Qt.RightButton) {
+            PanelManager.close()
             Quickshell.execDetached(["nm-connection-editor"])
-        else
+        } else {
             panel.toggle()
+        }
     }
 
     NetworkPanel {

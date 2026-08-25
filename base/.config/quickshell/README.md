@@ -16,8 +16,8 @@ services/     singletons only — the one dir with a hand-written qmldir.
 lib/          shared components: Panel (base for anchored panels),
               BarWidget (clickable bar item), BarText, VolSlider, MeterRow, NetRow
 bar/          Bar.qml + one file per widget
-panels/       anchored panels (derive from lib/Panel) + standalone centered
-              windows (Launcher-style: Clipboard, Wallpaper) + NotificationPopups
+panels/       anchored panels (derive from lib/Panel) + managed centered panels
+              (Launcher, Clipboard, Wallpaper) + passive NotificationPopups
 ```
 
 Rules of thumb:
@@ -31,26 +31,38 @@ Rules of thumb:
 
 ## How panels work
 
-`lib/Panel.qml` owns chrome, positioning (centered over `anchorItem`, clamped
-to screen), and dismissal. `services/PanelManager.qml` keeps at most one open.
+`Panel` means a managed interactive surface with keyboard focus. `lib/Panel.qml`
+owns chrome and positioning for bar-anchored panels; Launcher, Clipboard, and
+Wallpaper implement the same lifecycle directly. `services/PanelManager.qml`
+is the sole lifecycle authority and keeps one managed panel open globally.
 
 - Every panel registers by `panelName`; keybinds/scripts open them with
   `qs ipc call panels toggle <name>` (session, notifications, battery, …).
   PanelManager picks the instance on the focused monitor (panels are
   per-screen — each Bar instantiates its own).
-- One-click switching works because the panel's HyprlandFocusGrab includes
-  the **bar window**: clicking another widget reaches that widget (which
-  toggles via PanelManager) instead of merely clearing the grab. Don't
-  "simplify" that windows list.
-- `wantsKeyboard: true` gives the panel OnDemand keyboard focus when open:
-  Escape closes (handled in the base), everything else arrives via the
-  `keyPressed(event)` signal. See SessionPanel (arrows/jk/enter + two-click
-  arm for destructive actions) and NotifyPanel.
+- Managed surfaces expose `managedOpen()`/`managedClose()` for the manager and
+  public `toggle()`/`close()` methods that delegate back to it. Visibility is
+  changed only in the managed methods. Registration and bar-window
+  registration must be paired with destruction-time unregister calls.
+- Every managed surface uses OnDemand keyboard focus, focuses its initial
+  scope or input when opened, and has a window-level Escape shortcut.
+- Each focus grab includes the open surface and every registered bar window.
+  An application click outside that set closes the surface; bar widgets remain
+  reachable in one click across monitors. Focus loss, pointer movement, and
+  `focusedmon` events do not dismiss panels.
+- Empty bar space and non-panel bar actions close the current surface. A
+  primary panel-widget click toggles it, so the current widget closes and a
+  different widget switches surfaces in one click.
+- Normal and special workspace events (`workspace`, `workspacev2`,
+  `activespecial`, `activespecialv2`) close the current surface.
 - Per-open refresh goes in the `opening()` signal handler, not
   `onVisibleChanged`.
-- Standalone windows (Launcher, Clipboard, Wallpaper) manage themselves
-  (`toggle()/show()/hide()` + own grab); PanelManager.toggleByName duck-types
-  so they can still be registered and launched by name (Wallpaper is).
+- Passive `PanelWindow` surfaces such as notification toasts, tooltips, and
+  indicators stay outside PanelManager and do not take keyboard focus.
+
+Future keyboard work should use reusable focusable controls such as
+`PanelButton`, `PanelToggle`, and `PanelSlider` with real focus traversal. Do
+not add a keyboard-only panel subtype or panel-wide index management.
 
 ## Notifications
 

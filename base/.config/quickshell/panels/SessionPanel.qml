@@ -8,7 +8,6 @@ Panel {
     panelName: "session"
     panelWidth: 200
     contentSpacing: 4
-    wantsKeyboard: true
 
     // destructive rows arm on the first click/enter and run on the second
     property var armed: null

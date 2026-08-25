@@ -19,6 +19,7 @@ Row {
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton
 
         onClicked: event => {
+            PanelManager.close()
             if (event.button === Qt.MiddleButton)
                 Hypr.dispatch("forcekillactive", "hl.dsp.window.kill()")
             else

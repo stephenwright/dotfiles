@@ -12,10 +12,12 @@ BarWidget {
     fg: Notifs.dnd ? Theme.red : Theme.sapphire
 
     onClicked: event => {
-        if (event.button === Qt.RightButton)
+        if (event.button === Qt.RightButton) {
+            PanelManager.close()
             Notifs.toggleDnd()
-        else
+        } else {
             panel.toggle()
+        }
     }
 
     // notifications arrived while DND is on

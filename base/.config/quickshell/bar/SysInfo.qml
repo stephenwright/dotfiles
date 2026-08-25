@@ -67,10 +67,12 @@ BarWidget {
     }
 
     onClicked: event => {
-        if (event.button === Qt.RightButton)
+        if (event.button === Qt.RightButton) {
+            PanelManager.close()
             Quickshell.execDetached(Settings.systemMonitor)
-        else
+        } else {
             panel.toggle()
+        }
     }
 
     SystemPanel {

@@ -4,7 +4,7 @@ import Quickshell.Hyprland
 import Quickshell.Wayland
 import "../services"
 
-// Base for bar-anchored panels: chrome, positioning, and dismissal.
+// Base for bar-anchored panels: chrome, positioning, focus, and dismissal.
 // Children declared in instances land in the inner content Column.
 // Open/close always goes through PanelManager so only one panel is up.
 PanelWindow {
@@ -14,15 +14,13 @@ PanelWindow {
     property string panelName: "panel"
     property int panelWidth: 300
     property int contentSpacing: 10
-    property bool wantsKeyboard: false
     default property alias contentData: content.data
     readonly property real contentWidth: content.width
 
     // per-panel refresh hook; runs just before the panel becomes visible
     signal opening()
 
-    // key events not handled by the base (Escape closes); only fires
-    // when wantsKeyboard is set
+    // key events not handled by the base
     signal keyPressed(var event)
 
     visible: false
@@ -40,10 +38,10 @@ PanelWindow {
     WlrLayershell.namespace: root.panelName
     // OnDemand, not Exclusive: an exclusive-keyboard layer pins focus to itself,
     // which keeps HyprlandFocusGrab from ever clearing on outside clicks
-    WlrLayershell.keyboardFocus: wantsKeyboard && visible
-        ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     Component.onCompleted: PanelManager.register(panelName, root)
+    Component.onDestruction: PanelManager.unregister(panelName, root)
 
     function toggle() {
         PanelManager.toggle(root)
@@ -53,8 +51,7 @@ PanelWindow {
         PanelManager.close(root)
     }
 
-    // PanelManager only: center over anchorItem, clamped to the screen
-    function openAt() {
+    function managedOpen() {
         const win = anchorItem.QsWindow.window
         screen = win.screen
         const r = anchorItem.mapToItem(null, 0, 0)
@@ -63,8 +60,11 @@ PanelWindow {
             Math.min(x, screen.width - implicitWidth - Theme.panelMargin)))
         opening()
         visible = true
-        if (wantsKeyboard)
-            scope.forceActiveFocus()
+        scope.forceActiveFocus()
+    }
+
+    function managedClose() {
+        visible = false
     }
 
     HyprlandFocusGrab {
@@ -72,8 +72,15 @@ PanelWindow {
         // the bar window is included so a click on another widget reaches it
         // and switches panels in one click instead of just clearing the grab
         active: root.visible && root.backingWindowVisible
-        windows: root.anchorItem ? [root, root.anchorItem.QsWindow.window] : [root]
+        windows: PanelManager.grabWindows(root)
         onCleared: PanelManager.dismissed(root)
+    }
+
+    Shortcut {
+        sequence: "Escape"
+        enabled: root.visible
+        context: Qt.WindowShortcut
+        onActivated: root.close()
     }
 
     Rectangle {
@@ -88,12 +95,7 @@ PanelWindow {
             focus: true
 
             Keys.onPressed: event => {
-                if (event.key === Qt.Key_Escape) {
-                    PanelManager.close(root)
-                    event.accepted = true
-                } else {
-                    root.keyPressed(event)
-                }
+                root.keyPressed(event)
             }
 
             Column {

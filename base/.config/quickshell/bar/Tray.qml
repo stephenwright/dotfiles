@@ -30,6 +30,7 @@ Row {
             }
 
             onClicked: event => {
+                PanelManager.close()
                 if (event.button === Qt.LeftButton && !trayItem.modelData.onlyMenu) {
                     trayItem.modelData.activate()
                 } else if (trayItem.modelData.hasMenu) {

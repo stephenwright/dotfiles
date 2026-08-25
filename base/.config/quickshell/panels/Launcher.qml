@@ -24,14 +24,18 @@ PanelWindow {
     property var results: []
     property int selected: 0
 
-    // standalone window, but registered so bar widgets/IPC can toggleByName it
     Component.onCompleted: PanelManager.register("launcher", root)
+    Component.onDestruction: PanelManager.unregister("launcher", root)
 
     function toggle() {
-        visible ? hide() : show()
+        PanelManager.toggle(root)
     }
 
-    function show() {
+    function close() {
+        PanelManager.close(root)
+    }
+
+    function managedOpen() {
         category = null
         input.text = ""
         refilter()
@@ -39,7 +43,7 @@ PanelWindow {
         input.forceActiveFocus()
     }
 
-    function hide() {
+    function managedClose() {
         visible = false
     }
 
@@ -102,7 +106,7 @@ PanelWindow {
             descend(e)
             return
         }
-        hide()
+        close()
         if (e.entry)
             e.entry.execute()
         else if (e.run)
@@ -122,8 +126,15 @@ PanelWindow {
     HyprlandFocusGrab {
         // wait for the surface to be mapped, or the grab registers nothing
         active: root.visible && root.backingWindowVisible
-        windows: [root]
-        onCleared: root.hide()
+        windows: PanelManager.grabWindows(root)
+        onCleared: PanelManager.dismissed(root)
+    }
+
+    Shortcut {
+        sequence: "Escape"
+        enabled: root.visible
+        context: Qt.WindowShortcut
+        onActivated: root.close()
     }
 
     Rectangle {
@@ -165,9 +176,7 @@ PanelWindow {
                     onTextChanged: root.refilter()
 
                     Keys.onPressed: event => {
-                        if (event.key === Qt.Key_Escape) {
-                            root.category ? root.back() : root.hide()
-                        } else if (event.key === Qt.Key_Backspace && !input.text && root.category) {
+                        if (event.key === Qt.Key_Backspace && !input.text && root.category) {
                             root.back()
                         } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
                             root.selected = Math.min(root.selected + 1, root.results.length - 1)

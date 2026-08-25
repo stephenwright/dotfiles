@@ -4,46 +4,78 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 
-// Coordinates bar-anchored panels: at most one open, single-click switching,
-// and keybind access via `qs ipc call panels toggle <name>`.
+// Coordinates managed panels: at most one open, single-click switching,
+// outside-click dismissal, and keybind access via IPC.
 Singleton {
     id: root
 
-    property var open: null
-    readonly property var registry: ({})   // panelName -> [instance per screen]
+    property var current: null
+    property var registry: ({})
+    property var barWindows: []
+    readonly property var workspaceEvents: [
+        "workspace",
+        "workspacev2",
+        "activespecial",
+        "activespecialv2",
+    ]
 
     function register(name, panel) {
-        if (!registry[name])
-            registry[name] = []
-        registry[name].push(panel)
+        const next = Object.assign({}, registry)
+        const panels = (next[name] ?? []).filter(p => p !== panel)
+        panels.push(panel)
+        next[name] = panels
+        registry = next
     }
 
-    function toggle(p) {
-        if (open === p) {
+    function unregister(name, panel) {
+        if (current === panel) {
+            current = null
+            panel.managedClose()
+        }
+        const next = Object.assign({}, registry)
+        const panels = (next[name] ?? []).filter(p => p !== panel)
+        if (panels.length)
+            next[name] = panels
+        else
+            delete next[name]
+        registry = next
+    }
+
+    function registerBar(bar) {
+        barWindows = barWindows.filter(w => w !== bar).concat([bar])
+    }
+
+    function unregisterBar(bar) {
+        barWindows = barWindows.filter(w => w !== bar)
+    }
+
+    function grabWindows(panel) {
+        return [panel].concat(barWindows)
+    }
+
+    function toggle(panel) {
+        if (current === panel) {
             close()
             return
         }
-        if (open)
-            open.visible = false
-        p.openAt()
-        open = p
+        close()
+        current = panel
+        panel.managedOpen()
     }
 
-    function close(p) {
-        if (p && p !== open) {
-            p.visible = false
+    function close(panel) {
+        if (panel && panel !== current) {
+            panel.managedClose()
             return
         }
-        if (open)
-            open.visible = false
-        open = null
+        const closing = current
+        current = null
+        if (closing)
+            closing.managedClose()
     }
 
-    // focus grab cleared by a click outside the panel and its bar
-    function dismissed(p) {
-        if (open === p)
-            open = null
-        p.visible = false
+    function dismissed(panel) {
+        close(panel)
     }
 
     function toggleByName(name) {
@@ -53,11 +85,16 @@ Singleton {
         const mon = Hyprland.focusedMonitor
         const p = list.find(x => mon && x.anchorItem
             && x.anchorItem.QsWindow.window.screen.name === mon.name) ?? list[0]
-        // anchored panels go through the manager; standalone windows self-manage
-        if (typeof p.openAt === "function")
-            toggle(p)
-        else
-            p.toggle()
+        toggle(p)
+    }
+
+    Connections {
+        target: Hyprland
+
+        function onRawEvent(event) {
+            if (root.workspaceEvents.includes(event.name))
+                root.close()
+        }
     }
 
     IpcHandler {

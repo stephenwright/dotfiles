@@ -17,8 +17,16 @@ PanelWindow {
     implicitHeight: Theme.barHeight
     color: Theme.barBg
 
+    Component.onCompleted: PanelManager.registerBar(root)
+    Component.onDestruction: PanelManager.unregisterBar(root)
+
     Item {
         anchors.fill: parent
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: PanelManager.close()
+        }
 
         Row {
             anchors.left: parent.left

@@ -11,7 +11,6 @@ Panel {
     panelName: "network"
     panelWidth: 320
     contentSpacing: 8
-    wantsKeyboard: true
 
     property var pendingNet: null
     property var lastAttempt: null
@@ -243,13 +242,6 @@ Panel {
                 font.pixelSize: 13
                 clip: true
                 onAccepted: root.submitPsk()
-
-                Keys.onPressed: event => {
-                    if (event.key === Qt.Key_Escape) {
-                        root.pendingNet = null
-                        event.accepted = true
-                    }
-                }
             }
         }
     }

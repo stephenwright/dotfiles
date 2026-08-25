@@ -36,6 +36,7 @@ BarWidget {
     }
 
     onClicked: {
+        PanelManager.close()
         Quickshell.execDetached(["sh", "-c", "~/bin/stew capture stop"])
         refresh.start()
     }

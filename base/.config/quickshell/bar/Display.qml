@@ -48,10 +48,12 @@ BarWidget {
     onScrolledUp: set("5%+")
     onScrolledDown: set("5%-")
     onClicked: event => {
-        if (event.button === Qt.RightButton)
+        if (event.button === Qt.RightButton) {
+            PanelManager.close()
             set("100%")
-        else
+        } else {
             panel.toggle()
+        }
     }
 
     DisplayPanel {

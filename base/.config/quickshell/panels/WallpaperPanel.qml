@@ -24,24 +24,29 @@ PanelWindow {
     readonly property int rows: Math.ceil(walls.length / 3)
 
     Component.onCompleted: PanelManager.register("wallpaper", root)
+    Component.onDestruction: PanelManager.unregister("wallpaper", root)
 
     function toggle() {
-        visible ? hide() : show()
+        PanelManager.toggle(root)
     }
 
-    function show() {
+    function close() {
+        PanelManager.close(root)
+    }
+
+    function managedOpen() {
         listProc.running = true
         curProc.running = true
         visible = true
         keys.forceActiveFocus()
     }
 
-    function hide() {
+    function managedClose() {
         visible = false
     }
 
     function apply(path) {
-        hide()
+        close()
         current = path
         Quickshell.execDetached([Quickshell.env("HOME") + "/bin/stew", "wall", "set", path])
     }
@@ -66,8 +71,15 @@ PanelWindow {
     HyprlandFocusGrab {
         // wait for the surface to be mapped, or the grab registers nothing
         active: root.visible && root.backingWindowVisible
-        windows: [root]
-        onCleared: root.hide()
+        windows: PanelManager.grabWindows(root)
+        onCleared: PanelManager.dismissed(root)
+    }
+
+    Shortcut {
+        sequence: "Escape"
+        enabled: root.visible
+        context: Qt.WindowShortcut
+        onActivated: root.close()
     }
 
     Rectangle {
@@ -80,8 +92,6 @@ PanelWindow {
             id: keys
             anchors.fill: parent
             focus: true
-            Keys.onEscapePressed: root.hide()
-
             GridView {
                 id: grid
                 anchors.fill: parent

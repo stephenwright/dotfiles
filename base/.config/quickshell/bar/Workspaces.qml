@@ -25,8 +25,11 @@ Row {
             height: parent ? parent.height : 0
             hoverEnabled: true
 
-            onClicked: Hypr.dispatch("workspace " + modelData.id,
-                                     "hl.dsp.focus({workspace = " + modelData.id + "})")
+            onClicked: {
+                PanelManager.close()
+                Hypr.dispatch("workspace " + modelData.id,
+                              "hl.dsp.focus({workspace = " + modelData.id + "})")
+            }
 
             Rectangle {
                 anchors.fill: parent
