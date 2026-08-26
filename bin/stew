@@ -18,6 +18,12 @@ case "$category" in
     notify)
         "$BIN_DIR/stew-notify" "$action" "$@"
         ;;
+    pac)
+        "$BIN_DIR/stew-pac" repo "$action" "$@"
+        ;;
+    aur)
+        "$BIN_DIR/stew-pac" aur "$action" "$@"
+        ;;
     profile)
         "$BIN_DIR/stew-profile" "$action" "$@"
         ;;
@@ -42,9 +48,11 @@ case "$category" in
         echo "Usage: stew <command> <action> [options]"
         echo ""
         echo "Commands:"
+        echo "  aur      AUR packages via paru (install/remove)"
         echo "  capture  Screen-region capture to GIF"
         echo "  mux      Multiplexer session profiles"
         echo "  notify   Notification management"
+        echo "  pac      Repo packages via pacman (install/remove)"
         echo "  profile  Workspace/monitor profiles"
         echo "  run      Command runner"
         echo "  session  Lock/logout/sleep/restart/shutdown"
