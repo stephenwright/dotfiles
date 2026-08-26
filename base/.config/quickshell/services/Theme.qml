@@ -50,7 +50,7 @@ Singleton {
     readonly property color crust: "#181926"
 
     readonly property color barBg: Qt.rgba(0, 0, 0, 0.7)
-    readonly property color panelBg: Qt.rgba(base.r, base.g, base.b, 0.85)
+    readonly property color panelBg: base
 
     function levelColor(frac, warn, crit) {
         return frac >= crit ? red : frac >= warn ? yellow : mauve
