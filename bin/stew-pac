@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# Interactive package management. Repo packages go through pacman, AUR through paru.
+
+set -euo pipefail
+
+usage() {
+    cat <<'EOF'
+Usage: stew pac <install|remove> [query]
+       stew aur <install|remove> [query]
+
+Multi-select with tab, confirm with enter. Any query is used as the initial
+fzf filter.
+
+  pac install   all repo packages, installed ones marked
+  pac remove    explicitly installed repo packages
+  aur install   all AUR packages (preview hidden; alt-p to fetch)
+  aur remove    foreign packages, i.e. everything not in a repo
+EOF
+}
+
+require() {
+    command -v "$1" >/dev/null || { echo "$1 not found" >&2; exit 1; }
+}
+
+# Append a marker to names already present locally so the install lists show
+# what is redundant. --nth 1 keeps the marker out of the match.
+mark_installed() {
+  awk 'NR==FNR { have[$0]; next } { printf "%s%s\n", $0, ($0 in have ? " (update)" : "") }' \
+        <(pacman -Qq) -
+}
+
+# Explicitly installed packages that came from a repo, i.e. excluding AUR.
+repo_explicit() {
+    comm -23 <(pacman -Qeq | sort) <(pacman -Qmq | sort)
+}
+
+pick() {
+    local preview=$1 prompt=$2 hidden=$3
+    local fzf_args=(
+        --multi
+        --nth 1
+        --prompt "$prompt"
+        --preview "$preview"
+        --preview-label 'alt-p: toggle preview, alt-j/k: scroll, tab: multi-select'
+        --preview-label-pos bottom
+        --preview-window "down:65%:wrap${hidden:+:hidden}"
+        --bind 'alt-p:toggle-preview'
+        --bind 'alt-d:preview-half-page-down,alt-u:preview-half-page-up'
+        --bind 'alt-k:preview-up,alt-j:preview-down'
+        --bind 'ctrl-a:toggle-all'
+        --color 'pointer:green,marker:green'
+    )
+    [[ -n "$query" ]] && fzf_args+=(--query "$query")
+
+    fzf "${fzf_args[@]}" | awk '{print $1}'
+}
+
+require fzf
+require pacman
+
+scope=${1:-}
+action=${2:-}
+shift 2 2>/dev/null || true
+query="$*"
+
+case "$scope" in
+    -h|--help) usage; exit 0 ;;
+    repo|aur) ;;
+    *) usage >&2; exit 1 ;;
+esac
+
+[[ "$scope" == aur ]] && require paru
+
+# fzf exits non-zero on escape; an empty selection is not an error
+selected=''
+case "$scope/$action" in
+    repo/install)
+        selected=$(pacman -Slq | mark_installed |
+            pick 'pacman -Si {1}' 'install > ' '') || true
+        ;;
+    repo/remove)
+        selected=$(repo_explicit |
+            pick 'pacman -Qii {1}' 'remove > ' '') || true
+        ;;
+    aur/install)
+        # paru -Si is an AUR RPC call (~0.7s), too slow to fire on every move
+        selected=$(paru -Slq aur | mark_installed |
+            pick 'paru -Si --aur {1}' 'aur install > ' 'hidden') || true
+        ;;
+    aur/remove)
+        selected=$(pacman -Qmq |
+            pick 'pacman -Qii {1}' 'aur remove > ' '') || true
+        ;;
+    *)
+        usage >&2
+        exit 1
+        ;;
+esac
+
+[[ -n "$selected" ]] || exit 0
+mapfile -t pkgs <<<"$selected"
+
+# run without a pipe on stdin so pacman's confirmation prompt still reads the tty
+case "$scope/$action" in
+    repo/install) sudo pacman -S --needed "${pkgs[@]}" ;;
+    repo/remove)  sudo pacman -Rns "${pkgs[@]}" ;;
+    aur/install)  paru -S --aur --needed "${pkgs[@]}" ;;
+    aur/remove)   paru -Rns "${pkgs[@]}" ;;
+esac
