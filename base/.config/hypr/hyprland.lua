@@ -256,8 +256,8 @@ hl.window_rule({
     name  = "float-center",
     match = { class = "^(float-center)$" },
     float = true,
-    size  = "60% 60%",
-    move  = "20% 20%",
+    size  = {"monitor_w * 0.6", "monitor_h * 0.8"},
+    move  = {"monitor_w * 0.2", "monitor_h * 0.1"},
 })
 
 -- zoom — main meeting tiles; popups/toolbars float
