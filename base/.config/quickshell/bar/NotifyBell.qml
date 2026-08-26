@@ -8,7 +8,7 @@ BarWidget {
 
     readonly property int count: Notifs.tracked.values.length
 
-    text: Notifs.dnd ? "󰂛" : count > 0 ? "󱅫" : "󰂚"
+    text: Notifs.dnd ? "" : count > 0 ? "󱅫" : ""
     fg: Notifs.dnd ? Theme.red : Theme.sapphire
 
     onClicked: event => {

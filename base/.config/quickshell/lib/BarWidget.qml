@@ -8,6 +8,7 @@ MouseArea {
     property color fg: Theme.text
     property color hoverBg: Qt.rgba(1, 1, 1, 0.08)
     property bool blink: false
+    property int fontSize: 20
 
     signal scrolledUp()
     signal scrolledDown()
@@ -26,6 +27,7 @@ MouseArea {
         id: label
         anchors.centerIn: parent
         color: root.fg
+        font.pixelSize: parent.fontSize
     }
 
     // accumulate to full 120-unit notches; hi-res wheels/touchpads send many small events,

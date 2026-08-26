@@ -11,7 +11,7 @@ BarWidget {
 
     property int percent: 0
 
-    text: "󰍹"
+    text: Caffeine.on ? "󱎴" : "󰍹"
     fg: Caffeine.on ? Theme.green : Theme.text
 
     // one inhibitor per bar/screen; overlapping inhibitors are harmless

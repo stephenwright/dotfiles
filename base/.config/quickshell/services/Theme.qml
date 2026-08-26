@@ -15,7 +15,7 @@ Singleton {
     // spacing
     readonly property int barHeight: 30
     readonly property int barSpacing: 8       // gap between items
-    readonly property int widgetPadding: 8    // clickable area: bar widgets + workspace pills
+    readonly property int widgetPadding: 10   // clickable area: bar widgets + workspace pills
     readonly property int panelMargin: 5      // gap between panel and bar/screen edges
     readonly property int panelPadding: 10    // panel content inset
 

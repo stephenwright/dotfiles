@@ -24,7 +24,7 @@ BarWidget {
     readonly property bool critical: cpu >= 90 || memPct >= 80 || diskPct >= 90 || temp >= 80
     readonly property bool warning: cpu >= 70 || memPct >= 70 || diskPct >= 70 || temp >= 70
 
-    text: "󰄨"
+    text: ""
     fg: critical ? Theme.red : warning ? Theme.yellow : Theme.text
     blink: critical
 

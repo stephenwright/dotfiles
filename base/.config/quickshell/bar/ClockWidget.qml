@@ -5,6 +5,7 @@ import "../panels"
 
 BarWidget {
     id: root
+    fontSize: Theme.fontSize
 
     SystemClock {
         id: clock
