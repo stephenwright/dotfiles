@@ -4,19 +4,120 @@
 
 set -euo pipefail
 
-term="alacritty --class float-center -e"
-cmd=$(fuzzel --dmenu --prompt-only="$ ")
+term=(alacritty --class float-center -e)
+hold="echo; read -k1 '?[any key] '"
+hint_delay=10
+max_lines=6
+max_chars=350
+
+tmpfile=''
+cleanup() {
+    [ -n "$tmpfile" ] && rm -f "$tmpfile"
+    return 0
+}
+trap cleanup EXIT
+
+usage() {
+    cat <<'EOF'
+Usage: stew run [command]
+
+Prompts via fuzzel when no command is given.
+
+  cmd     run and notify the output; critical notification on failure,
+          long output opens in a pager
+  ;cmd    run in a terminal that stays open
+  :cmd    run in a terminal that closes on success, holds on failure
+EOF
+}
+
+is_long() {
+    [ "${#1}" -gt "$max_chars" ] && return 0
+    [ "$(printf '%s\n' "$1" | wc -l)" -gt "$max_lines" ]
+}
+
+open_pager() {
+    tmpfile=$(mktemp --tmpdir stew-run.XXXXXX)
+    printf '%s\n' "$1" >"$tmpfile"
+    "${term[@]}" less -R "$tmpfile"
+    cleanup
+    tmpfile=''
+}
+
+# run, then report via notification: output when short, exit code and duration
+# otherwise. Long output goes to a pager instead of an elided notification body.
+run_and_notify() {
+    local cmd=$1
+    local output status=0 elapsed body summary hint_file hint_pid hint_id
+    local -a args=()
+
+    hint_file=$(mktemp --tmpdir stew-run-hint.XXXXXX)
+    ( sleep "$hint_delay"
+      notify-send -p "\$ $cmd" "still running (${hint_delay}s)…" >"$hint_file" ) &
+    hint_pid=$!
+
+    local start=$SECONDS
+    output=$(zsh -ic "$cmd" 2>&1) || status=$?
+    elapsed=$((SECONDS - start))
+
+    kill "$hint_pid" 2>/dev/null || true
+    wait "$hint_pid" 2>/dev/null || true
+    hint_id=$(cat "$hint_file" 2>/dev/null || true)
+    rm -f "$hint_file"
+
+    if [ -n "$hint_id" ]; then
+        args+=(-r "$hint_id")
+    fi
+    if [ "$status" -ne 0 ]; then
+        args+=(-u critical)
+    fi
+
+    summary="exit $status · ${elapsed}s"
+
+    if [ -z "$output" ]; then
+        body=$summary
+    elif is_long "$output"; then
+        body="$summary — output in pager"
+        if [ "$status" -ne 0 ]; then
+            body="$(printf '%s\n' "$output" | head -n "$max_lines")"$'\n'"$body"
+        fi
+    else
+        body=$output
+        if [ "$status" -ne 0 ]; then
+            body="$body"$'\n'"$summary"
+        fi
+    fi
+
+    notify-send "${args[@]}" "\$ $cmd" "$body"
+
+    # after the notification: the pager blocks until the terminal closes
+    if [ -n "$output" ] && is_long "$output"; then
+        open_pager "$output"
+    fi
+}
+
+case "${1:-}" in
+    -h|--help)
+        usage
+        exit 0
+        ;;
+esac
+
+cmd=${1:-}
+[ -n "$cmd" ] || cmd=$(fuzzel --dmenu --prompt-only="$ ")
 
 if [ -n "$cmd" ]; then
     # -i so ~/.zshrc runs first: aliases must exist before "$cmd" is parsed
     case $cmd in
         # leading ';' runs in a terminal that stays open
         \;*)
-            $term zsh -ic "${cmd#;}; echo; read -k1 '?[any key] '"
+            "${term[@]}" zsh -ic "${cmd#;}; $hold"
+            ;;
+        # leading ':' closes the terminal on success, holds on failure
+        :*)
+            "${term[@]}" zsh -ic "${cmd#:} || { $hold; }"
             ;;
         *)
-            output=$(zsh -ic "$cmd" 2>&1)
-            [ -n "$output" ] && notify-send "\$ $cmd" "$output"
+            run_and_notify "$cmd"
             ;;
     esac
 fi

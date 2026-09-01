@@ -46,7 +46,7 @@ stew capture    # Screen-region capture to GIF
 stew mux        # Multiplexer session profiles
 stew notify     # Show recent notifications
 stew profile    # Apply workspace/monitor profile
-stew run        # Command runner
+stew run        # Command runner (bare notifies, ';' terminal, ':' TUI)
 stew session    # Lock/logout/restart/shutdown
 stew wall       # Change wallpaper
 stew win        # Find and manage windows

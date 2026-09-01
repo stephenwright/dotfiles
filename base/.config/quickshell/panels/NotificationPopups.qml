@@ -136,7 +136,7 @@ PanelWindow {
                                 width: parent.width
                                 visible: text !== ""
                                 wrapMode: Text.Wrap
-                                maximumLineCount: 4
+                                maximumLineCount: 6
                                 elide: Text.ElideRight
                                 textFormat: Text.StyledText
                                 color: Theme.subtext0

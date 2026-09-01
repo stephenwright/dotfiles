@@ -15,6 +15,9 @@ Panel {
 
     property var pendingNet: null
     property var lastAttempt: null
+    // true when lastAttempt was a fresh password entry; NM saves the profile
+    // before authenticating, so a rejected password must be forgotten again
+    property bool attemptWasNew: false
     property string errorMsg: ""
 
     readonly property var wifiDev: Networking.devices.values.find(d => d.type === DeviceType.Wifi) ?? null
@@ -90,6 +93,7 @@ Panel {
             return
         if (n.known || !secured(n)) {
             lastAttempt = n
+            attemptWasNew = false
             pendingNet = null
             n.connect()
         } else {
@@ -103,9 +107,35 @@ Panel {
         if (!pendingNet)
             return
         lastAttempt = pendingNet
+        attemptWasNew = true
         pendingNet.connectWithPsk(pskInput.text)
         pendingNet = null
         pskInput.text = ""
+    }
+
+    function forget(n) {
+        errorMsg = ""
+        if (pendingNet === n)
+            pendingNet = null
+        if (lastAttempt === n)
+            lastAttempt = null
+        n.forget()
+    }
+
+    function failReason(reason) {
+        switch (reason) {
+        case ConnectionFailReason.NoSecrets:
+        case ConnectionFailReason.WifiClientFailed:
+            return "wrong password"
+        case ConnectionFailReason.WifiAuthTimeout:
+            return "authentication timed out"
+        case ConnectionFailReason.WifiClientDisconnected:
+            return "disconnected by access point"
+        case ConnectionFailReason.WifiNetworkLost:
+            return "network lost"
+        default:
+            return ConnectionFailReason.toString(reason)
+        }
     }
 
     function recoverFocus() {
@@ -122,7 +152,15 @@ Panel {
         target: root.lastAttempt
 
         function onConnectionFailed(reason) {
-            root.errorMsg = "Connection failed"
+            const n = root.lastAttempt
+            root.errorMsg = n.name + ": " + root.failReason(reason)
+            if (!root.attemptWasNew)
+                return
+            if (n.known)
+                n.forget()
+            root.pendingNet = n
+            pskInput.text = ""
+            pskInput.forceActiveFocus()
         }
     }
 
