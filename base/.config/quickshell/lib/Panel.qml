@@ -12,7 +12,7 @@ PanelWindow {
 
     property Item anchorItem
     property string panelName: "panel"
-    property int panelWidth: 300
+    property int panelWidth: 340
     property int contentSpacing: 10
     property Item initialFocusItem: null
     default property alias contentData: content.data
