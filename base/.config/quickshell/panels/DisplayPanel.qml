@@ -55,6 +55,12 @@ Panel {
             "sleep 0.2; hyprshot --mode " + mode + " --clipboard-only --freeze"])
     }
 
+    // copies the hex code and posts a notification with it
+    function pickColor() {
+        close()
+        Quickshell.execDetached(["sh", "-c", "sleep 0.2; hyprpicker -a -n"])
+    }
+
     function record(format) {
         close()
         Recorder.start(format)
@@ -200,7 +206,7 @@ Panel {
             id: btn
             required property var modelData
 
-            width: (root.contentWidth - 12) / 3
+            width: parent ? (root.contentWidth - (parent.columns - 1) * 6) / parent.columns : 0
             height: 26
             accessibleName: modelData.label
             horizontalNavigation: true
@@ -216,13 +222,13 @@ Panel {
     }
 
     BarText {
-        text: "Screenshot"
+        text: "Screenshot / color"
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.overlay1
     }
 
     Grid {
-        columns: 3
+        columns: 4
         spacing: 6
 
         Repeater {
@@ -230,6 +236,7 @@ Panel {
                 { label: "region", run: () => root.shot("region") },
                 { label: "window", run: () => root.shot("window") },
                 { label: "screen", run: () => root.shot("output") },
+                { label: "color", run: () => root.pickColor() },
             ]
             delegate: captureBtn
         }

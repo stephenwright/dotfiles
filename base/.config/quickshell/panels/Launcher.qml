@@ -11,7 +11,7 @@ PanelWindow {
 
     visible: false
     implicitWidth: 560
-    implicitHeight: 44 + results.length * 30
+    implicitHeight: 44 + Math.min(results.length, maxRows) * rowHeight
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
@@ -23,6 +23,23 @@ PanelWindow {
     property var category: null
     property var results: []
     property int selected: 0
+
+    readonly property int maxRows: 12
+    readonly property int rowHeight: 30
+
+    // "> cmd" runs a shell command, "= expr" evaluates with qalc. Functions,
+    // not bindings: refilter runs from onTextChanged, possibly before a
+    // binding on input.text would have updated.
+    function mode() {
+        return input.text.startsWith(">") ? "run"
+            : input.text.startsWith("=") ? "calc" : ""
+    }
+
+    function modeArg() {
+        return input.text.slice(1).trim()
+    }
+
+    onSelectedChanged: list.positionViewAtIndex(selected, ListView.Contain)
 
     Component.onCompleted: PanelManager.register("launcher", root)
     Component.onDestruction: PanelManager.unregister("launcher", root)
@@ -84,21 +101,49 @@ PanelWindow {
 
     function refilter() {
         const q = input.text.trim()
-        if (!q) {
-            results = category ? category.children.slice(0, 12) : categoryList()
+        const arg = modeArg()
+        if (mode() === "run") {
+            results = arg ? [{ label: arg, shell: arg }] : []
+        } else if (mode() === "calc") {
+            results = []
+            if (arg)
+                calcDebounce.restart()
+        } else if (!q) {
+            results = category ? category.children : categoryList()
         } else {
             const scope = leaves(category ? [category] : categoryList())
             results = scope
                 .map(e => ({ e, s: Fuzzy.score(q, e.label) }))
                 .filter(x => x.s >= 0)
                 .sort((a, b) => b.s - a.s)
-                .slice(0, 12)
                 .map(x => x.e)
         }
         selected = 0
     }
 
-    function activate() {
+    Timer {
+        id: calcDebounce
+        interval: 120
+        onTriggered: {
+            calc.running = false
+            calc.command = ["qalc", "-t", "--", root.modeArg()]
+            calc.running = true
+        }
+    }
+
+    Process {
+        id: calc
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const r = this.text.trim()
+                if (root.mode() === "calc" && r)
+                    root.results = [{ label: r, copy: r }]
+            }
+        }
+    }
+
+    // inTerminal: Shift+Enter on a "> cmd" row; the shell stays open afterwards
+    function activate(inTerminal) {
         const e = results[selected]
         if (!e)
             return
@@ -107,12 +152,36 @@ PanelWindow {
             return
         }
         close()
-        if (e.entry)
+        if (e.entry && e.entry.runInTerminal)
+            // DesktopEntry.execute() ignores Terminal=true
+            Quickshell.execDetached({
+                command: Settings.inTerminal(e.entry.command),
+                workingDirectory: e.entry.workingDirectory
+            })
+        else if (e.entry)
             e.entry.execute()
         else if (e.run)
             e.run()
+        else if (e.copy)
+            Quickshell.execDetached(["wl-copy", "--", e.copy])
+        else if (e.shell && inTerminal)
+            Quickshell.execDetached(Settings.inTerminal(["sh", "-c", e.shell + "; exec ${SHELL:-sh}"]))
+        else if (e.shell)
+            Quickshell.execDetached(["sh", "-c", e.shell])
         else
             Quickshell.execDetached(["sh", "-c", e.cmd])
+    }
+
+    function tagFor(e) {
+        if (e.children)
+            return "›"
+        if (e.state)
+            return e.state() ? "on" : "off"
+        return e.entry ? (e.entry.runInTerminal ? "term" : "app")
+            : e.shell ? "run ⇧term"
+            : e.copy ? "copy"
+            : e.run ? "qs"
+            : e.cmd.includes("stew") ? "stew" : "sh"
     }
 
     IpcHandler {
@@ -180,10 +249,14 @@ PanelWindow {
                             root.back()
                         } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
                             root.selected = Math.min(root.selected + 1, root.results.length - 1)
-                        } else if (event.key === Qt.Key_Up) {
+                        } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab) {
                             root.selected = Math.max(root.selected - 1, 0)
+                        } else if (event.key === Qt.Key_PageDown) {
+                            root.selected = Math.min(root.selected + root.maxRows, root.results.length - 1)
+                        } else if (event.key === Qt.Key_PageUp) {
+                            root.selected = Math.max(root.selected - root.maxRows, 0)
                         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                            root.activate()
+                            root.activate(event.modifiers & Qt.ShiftModifier)
                         } else {
                             return
                         }
@@ -193,7 +266,7 @@ PanelWindow {
                     BarText {
                         visible: !input.text
                         anchors.verticalCenter: parent.verticalCenter
-                        text: root.category ? "search…" : "search everything…"
+                        text: root.category ? "search…" : "search everything…   > run   = calc"
                         color: Theme.overlay0
                         font.pixelSize: Theme.fontSizeLarge
                     }
@@ -206,16 +279,21 @@ PanelWindow {
                 }
             }
 
-            Repeater {
+            ListView {
+                id: list
+                width: parent.width
+                height: Math.min(root.results.length, root.maxRows) * root.rowHeight
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
                 model: root.results
 
-                MouseArea {
+                delegate: MouseArea {
                     id: row
                     required property var modelData
                     required property int index
 
-                    width: parent.width
-                    height: 30
+                    width: ListView.view.width
+                    height: root.rowHeight
                     hoverEnabled: true
 
                     onClicked: {
@@ -246,11 +324,10 @@ PanelWindow {
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.right: parent.right
                         anchors.rightMargin: 12
-                        text: row.modelData.children ? "›"
-                            : row.modelData.entry ? "app"
-                            : row.modelData.run ? "qs" : "stew"
+                        text: root.tagFor(row.modelData)
                         font.pixelSize: Theme.fontSizeLarge
-                        color: row.modelData.children ? Theme.mauve : Theme.overlay0
+                        color: row.modelData.children ? Theme.mauve
+                            : row.modelData.state && row.modelData.state() ? Theme.green : Theme.overlay0
                     }
                 }
             }
