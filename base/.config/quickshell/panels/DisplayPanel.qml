@@ -8,7 +8,7 @@ Panel {
     id: root
 
     panelName: "display"
-    initialFocusItem: brightnessSlider
+    initialFocusItem: Brightness.available ? brightnessSlider : nightRow
 
     property bool nightOn: false
     property string profile: ""
@@ -57,7 +57,7 @@ Panel {
 
     function record(format) {
         close()
-        Quickshell.execDetached(["sh", "-c", "~/bin/stew capture start --format " + format])
+        Recorder.start(format)
     }
 
     function toggleNight() {
@@ -70,12 +70,14 @@ Panel {
     }
 
     BarText {
+        visible: Brightness.available
         text: "Brightness"
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.overlay1
     }
 
     Row {
+        visible: Brightness.available
         width: parent.width
         spacing: 10
 
@@ -87,7 +89,7 @@ Panel {
         PanelSlider {
             id: brightnessSlider
             width: parent.width - 24 - 40 - 20
-            value: (root.anchorItem ? root.anchorItem.percent : 0) / 100
+            value: Brightness.percent / 100
             accessibleName: "Brightness"
 
             property int lastSent: -1
@@ -95,7 +97,7 @@ Panel {
                 const p = Math.round(v * 100)
                 if (p !== lastSent) {
                     lastSent = p
-                    root.anchorItem.set(p + "%")
+                    Brightness.set(p + "%")
                 }
             }
         }
@@ -104,7 +106,7 @@ Panel {
             width: 40
             horizontalAlignment: Text.AlignRight
             anchors.verticalCenter: parent.verticalCenter
-            text: (root.anchorItem ? root.anchorItem.percent : 0) + "%"
+            text: Brightness.percent + "%"
             color: Theme.subtext0
         }
     }

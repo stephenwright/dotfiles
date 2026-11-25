@@ -18,4 +18,5 @@ ShellRoot {
     ClipboardPanel {}
     WallpaperPanel {}
     NotificationPopups {}
+    Osd {}
 }
