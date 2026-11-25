@@ -10,3 +10,4 @@ singleton Fuzzy Fuzzy.qml
 singleton SysStats SysStats.qml
 singleton Brightness Brightness.qml
 singleton Recorder Recorder.qml
+singleton Power Power.qml
