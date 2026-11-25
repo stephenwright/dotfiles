@@ -8,9 +8,10 @@ local fileManager = "nautilus"
 
 -- monitors
 
-hl.monitor({ output = "eDP-1", mode = "1920x1200", position = "auto",       scale = 1 })
-hl.monitor({ output = "DP-3",  mode = "preferred", position = "auto-center-right", scale = 1 })
-hl.monitor({ output = "",      mode = "preferred", position = "auto",       scale = "auto" })
+hl.monitor({ output = "eDP-1", mode = "1920x1200", position = "auto", scale = 1 })
+hl.monitor({ output = "DP-3", mode = "preferred", position = "auto-center-right", scale = 1 })
+hl.monitor({ output = "HDMI-A-1", mode = "preferred", position = "auto", scale = 2 })
+hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
 
 -------------------
 ---- AUTOSTART ----
