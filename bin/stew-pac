@@ -49,6 +49,9 @@ pick() {
         --bind 'alt-d:preview-half-page-down,alt-u:preview-half-page-up'
         --bind 'alt-k:preview-up,alt-j:preview-down'
         --bind 'ctrl-a:toggle-all'
+        # fzf reads mouse-motion reports (SGR button 35) as right-click, which
+        # toggles each row the pointer passes over
+        --bind 'right-click:ignore,shift-right-click:ignore'
         --color 'pointer:green,marker:green'
     )
     [[ -n "$query" ]] && fzf_args+=(--query "$query")
