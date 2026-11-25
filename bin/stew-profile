@@ -45,8 +45,11 @@ set_ws_rule() { # <workspace> <monitor, empty to clear>
 enable_monitor() { # <output> [mirror-of]
     local mirror=""
     if hypr_is_lua; then
+        # runtime hl.monitor merges into the existing rule, so stale
+        # disabled/mirror keys must be reset explicitly, not omitted
+        mirror=", mirror = \"\""
         [[ -n "${2:-}" ]] && mirror=", mirror = \"$2\""
-        hyprctl eval "hl.monitor({output = \"$1\", mode = \"preferred\", position = \"auto-right\", scale = 1$mirror})" >/dev/null 2>&1
+        hyprctl eval "hl.monitor({output = \"$1\", mode = \"preferred\", position = \"auto-right\", scale = 1, disabled = false$mirror})" >/dev/null 2>&1
     else
         [[ -n "${2:-}" ]] && mirror=",mirror,$2"
         hyprctl keyword monitor "$1,preferred,auto-right,1$mirror" >/dev/null 2>&1
