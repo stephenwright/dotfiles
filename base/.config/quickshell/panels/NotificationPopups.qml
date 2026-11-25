@@ -4,8 +4,9 @@ import Quickshell.Wayland
 import "../lib"
 import "../services"
 
-// Toast popups, top-right. Left-click invokes the default action,
-// right-click dismisses, timeout hides the toast but keeps it in history.
+// Toast popups, top-right, newest on top. Left-click runs the default action
+// (opens the sender), right-click dismisses, hover holds the toast open,
+// and timeout hides the toast but keeps the notification in the panel.
 PanelWindow {
     id: root
 
@@ -30,24 +31,39 @@ PanelWindow {
         spacing: 8
 
         Repeater {
-            model: Notifs.popups.slice(0, 5)
+            // ScriptModel keeps delegates for unchanged entries, so toast
+            // timers and animations survive other popups coming and going
+            model: ScriptModel {
+                values: Notifs.popups
+            }
 
             Rectangle {
                 id: toast
                 required property var modelData
 
+                // set before the notification and its actions are destroyed, so
+                // the action bindings drop them instead of rebuilding from dying objects
+                property bool closed: false
+                readonly property var settingsAction: closed ? null : Notifs.findAction(modelData, "settings")
+                readonly property var buttons: closed ? [] : Notifs.buttonActions(modelData)
+                // bumped when the notification is updated or re-sent
+                readonly property real shownAt: Notifs.arrivalOf(modelData)
+
                 width: parent.width
                 implicitHeight: body.implicitHeight + 24
                 color: Theme.panelBg
-                border.color: Notifs.urgencyColor(modelData.urgency)
+                border.color: Notifs.urgencyColor(modelData?.urgency)
                 border.width: 2
 
-                // any popups change rebuilds all delegates (fresh array model),
-                // so only fresh notifications get the entrance animation
-                Component.onCompleted: {
-                    if (Date.now() - Notifs.arrivalOf(modelData) < 400)
-                        enter.start()
+                Component.onCompleted: enter.start()
+
+                Connections {
+                    target: toast.modelData
+                    function onClosed() {
+                        toast.closed = true
+                    }
                 }
+                onShownAtChanged: if (timer.running) timer.restart()
 
                 ParallelAnimation {
                     id: enter
@@ -68,32 +84,25 @@ PanelWindow {
                     }
                 }
 
-                // Notification objects die after close; drop the popup ref
-                Connections {
-                    target: toast.modelData
-                    function onClosed() {
-                        Notifs.expirePopup(toast.modelData)
-                    }
+                Timer {
+                    id: timer
+                    interval: Notifs.timeoutFor(toast.modelData)
+                    running: interval > 0 && !hover.hovered
+                    onTriggered: Notifs.expirePopup(toast.modelData)
                 }
 
-                Timer {
-                    interval: Notifs.timeoutFor(toast.modelData)
-                    running: interval > 0
-                    onTriggered: Notifs.expirePopup(toast.modelData)
+                HoverHandler {
+                    id: hover
                 }
 
                 MouseArea {
                     anchors.fill: parent
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                     onClicked: event => {
-                        if (event.button === Qt.RightButton) {
+                        if (event.button === Qt.RightButton)
                             toast.modelData.dismiss()
-                        } else if (toast.modelData.actions.length > 0) {
-                            toast.modelData.actions[0].invoke()
-                            Notifs.expirePopup(toast.modelData)
-                        } else {
-                            Notifs.expirePopup(toast.modelData)
-                        }
+                        else
+                            Notifs.activate(toast.modelData)
                     }
                 }
 
@@ -115,8 +124,8 @@ PanelWindow {
                             height: 32
                             sourceSize: Qt.size(64, 64)
                             fillMode: Image.PreserveAspectFit
-                            source: toast.modelData.image
-                                || Quickshell.iconPath(toast.modelData.appIcon, true)
+                            source: toast.modelData?.image
+                                || Quickshell.iconPath(toast.modelData?.appIcon ?? "", true)
                             visible: source.toString() !== ""
                         }
 
@@ -124,14 +133,41 @@ PanelWindow {
                             width: parent.width - (icon.visible ? 42 : 0)
                             spacing: 2
 
-                            BarText {
+                            Item {
                                 width: parent.width
-                                elide: Text.ElideRight
-                                font.bold: true
-                                text: toast.modelData.appName
-                                    + (toast.modelData.summary
-                                        ? " · " + toast.modelData.summary : "")
+                                height: titleText.implicitHeight
+
+                                BarText {
+                                    id: titleText
+                                    anchors.left: parent.left
+                                    anchors.right: gear.visible ? gear.left : parent.right
+                                    anchors.rightMargin: gear.visible ? 6 : 0
+                                    elide: Text.ElideRight
+                                    font.bold: true
+                                    text: (toast.modelData?.appName ?? "")
+                                        + (toast.modelData?.summary
+                                            ? " · " + toast.modelData.summary : "")
+                                }
+
+                                // app-provided settings action (e.g. Chrome's site settings)
+                                MouseArea {
+                                    id: gear
+                                    visible: toast.settingsAction !== null
+                                    width: 18
+                                    height: parent.height
+                                    anchors.right: parent.right
+                                    hoverEnabled: true
+                                    onClicked: Notifs.invoke(toast.modelData, toast.settingsAction)
+
+                                    BarText {
+                                        anchors.centerIn: parent
+                                        text: "󰒓"
+                                        font.pixelSize: Theme.fontSizeSmall
+                                        color: gear.containsMouse ? Theme.mauve : Theme.overlay1
+                                    }
+                                }
                             }
+
                             BarText {
                                 width: parent.width
                                 visible: text !== ""
@@ -140,18 +176,17 @@ PanelWindow {
                                 elide: Text.ElideRight
                                 textFormat: Text.StyledText
                                 color: Theme.subtext0
-                                text: toast.modelData.body
+                                text: toast.modelData?.body ?? ""
                             }
                         }
                     }
 
-                    // a single action is redundant with body-click (which invokes actions[0])
                     Row {
-                        visible: toast.modelData.actions.length > 1
+                        visible: toast.buttons.length > 0
                         spacing: 6
 
                         Repeater {
-                            model: toast.modelData.actions
+                            model: toast.buttons
 
                             MouseArea {
                                 id: actBtn
@@ -160,10 +195,7 @@ PanelWindow {
                                 width: actText.implicitWidth + 20
                                 height: 22
                                 hoverEnabled: true
-                                onClicked: {
-                                    actBtn.modelData.invoke()
-                                    Notifs.expirePopup(toast.modelData)
-                                }
+                                onClicked: Notifs.invoke(toast.modelData, actBtn.modelData)
 
                                 Rectangle {
                                     anchors.fill: parent

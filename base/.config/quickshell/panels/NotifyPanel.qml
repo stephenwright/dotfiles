@@ -104,6 +104,8 @@ Panel {
         color: Theme.overlay0
     }
 
+    // live notifications grouped by app; ScriptModel keeps delegates (and
+    // their expanded state) when other notifications arrive or close
     ListView {
         id: list
         width: parent.width
@@ -111,108 +113,194 @@ Panel {
         visible: Notifs.tracked.values.length > 0
         clip: true
         spacing: 6
-        model: Notifs.tracked.values.slice().reverse()
+        model: ScriptModel {
+            values: Notifs.grouped
+        }
 
-        delegate: PanelButton {
-            id: row
+        delegate: Column {
+            id: entry
             required property var modelData
             required property int index
 
-            property bool expanded: false
+            readonly property string key: modelData ? Notifs.groupKey(modelData) : ""
+            readonly property var siblings: Notifs.grouped.filter(n => Notifs.groupKey(n) === key)
+            // see NotificationPopups: keep action bindings off dying objects
+            property bool closed: false
+            readonly property var settingsAction: closed ? null : Notifs.findAction(modelData, "settings")
+            readonly property var defaultAction: closed ? null : Notifs.findAction(modelData, "default")
+            readonly property var buttons: closed ? [] : Notifs.buttonActions(modelData)
 
             width: ListView.view.width
-            height: inner.implicitHeight + 12
-            accessibleName: row.modelData.appName + " " + row.modelData.summary
-            borderColor: Qt.alpha(Notifs.urgencyColor(row.modelData.urgency), 0.5)
-            onClicked: expanded = !expanded
-            onActiveFocusChanged: {
-                if (activeFocus)
-                    list.positionViewAtIndex(index, ListView.Contain)
-            }
-            onKeyPressed: event => {
-                if (event.key === Qt.Key_Delete || event.key === Qt.Key_X) {
-                    root.dismiss(row.modelData)
-                    event.accepted = true
+            spacing: 4
+
+            Connections {
+                target: entry.modelData
+                function onClosed() {
+                    entry.closed = true
                 }
             }
 
-            Column {
-                id: inner
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.margins: 6
-                spacing: 2
-
-                Item {
-                    width: parent.width
-                    height: 16
-
-                    BarText {
-                        anchors.left: parent.left
-                        anchors.right: rowTime.left
-                        anchors.rightMargin: 6
-                        elide: Text.ElideRight
-                        font.bold: true
-                        text: row.modelData.appName
-                            + (row.modelData.summary ? " · " + row.modelData.summary : "")
-                    }
-                    BarText {
-                        id: rowTime
-                        anchors.right: closeBtn.left
-                        anchors.rightMargin: 6
-                        anchors.verticalCenter: parent.verticalCenter
-                        font.pixelSize: Theme.fontSizeHint
-                        color: Theme.overlay0
-                        text: Notifs.timeOf(row.modelData)
-                    }
-                    PanelButton {
-                        id: closeBtn
-                        width: 16
-                        height: parent.height
-                        anchors.right: parent.right
-                        accessibleName: "Dismiss notification"
-                        onClicked: root.dismiss(row.modelData)
-                        BarText {
-                            anchors.centerIn: parent
-                            text: "✕"
-                            font.pixelSize: Theme.fontSizeSmall
-                            color: closeBtn.hovered || closeBtn.showFocus ? Theme.red : Theme.overlay1
-                        }
-                    }
-                }
+            // group header, on the newest notification of each app
+            Item {
+                visible: entry.siblings[0] === entry.modelData
+                width: parent.width
+                height: 18
 
                 BarText {
-                    width: parent.width
-                    visible: text !== ""
-                    wrapMode: Text.Wrap
-                    maximumLineCount: row.expanded ? 20 : 2
+                    anchors.left: parent.left
+                    anchors.right: groupClear.visible ? groupClear.left : parent.right
+                    anchors.verticalCenter: parent.verticalCenter
                     elide: Text.ElideRight
-                    textFormat: Text.StyledText
-                    color: Theme.subtext0
-                    text: row.modelData.body
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.overlay1
+                    text: (entry.modelData?.appName ?? "")
+                        + (entry.siblings.length > 1 ? " (" + entry.siblings.length + ")" : "")
+                }
+                PanelButton {
+                    id: groupClear
+                    visible: entry.siblings.length > 1
+                    width: 20
+                    height: parent.height
+                    anchors.right: parent.right
+                    accessibleName: "Dismiss all " + (entry.modelData?.appName ?? "") + " notifications"
+                    onClicked: {
+                        Notifs.dismissGroup(entry.key)
+                        root.focusHeader()
+                    }
+                    BarText {
+                        anchors.centerIn: parent
+                        text: "󰎟"
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: groupClear.hovered || groupClear.showFocus ? Theme.mauve : Theme.overlay1
+                    }
+                }
+            }
+
+            PanelButton {
+                id: row
+
+                property bool expanded: false
+
+                width: parent.width
+                height: inner.implicitHeight + 12
+                accessibleName: (entry.modelData?.appName ?? "") + " " + (entry.modelData?.summary ?? "")
+                borderColor: Qt.alpha(Notifs.urgencyColor(entry.modelData?.urgency), 0.5)
+                onClicked: expanded = !expanded
+                onActiveFocusChanged: {
+                    if (activeFocus)
+                        list.positionViewAtIndex(entry.index, ListView.Contain)
+                }
+                onKeyPressed: event => {
+                    if (event.key === Qt.Key_Delete || event.key === Qt.Key_X) {
+                        root.dismiss(entry.modelData)
+                        event.accepted = true
+                    }
                 }
 
-                Row {
-                    visible: row.expanded && row.modelData.actions.length > 0
-                    spacing: 6
+                Column {
+                    id: inner
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.margins: 6
+                    spacing: 2
 
-                    Repeater {
-                        model: row.modelData.actions
+                    Item {
+                        width: parent.width
+                        height: 16
 
+                        BarText {
+                            anchors.left: parent.left
+                            anchors.right: rowTime.left
+                            anchors.rightMargin: 6
+                            elide: Text.ElideRight
+                            font.bold: true
+                            text: entry.modelData?.summary || entry.modelData?.appName || ""
+                        }
+                        BarText {
+                            id: rowTime
+                            anchors.right: gearBtn.visible ? gearBtn.left : closeBtn.left
+                            anchors.rightMargin: 6
+                            anchors.verticalCenter: parent.verticalCenter
+                            font.pixelSize: Theme.fontSizeHint
+                            color: Theme.overlay0
+                            text: Notifs.timeOf(entry.modelData)
+                        }
                         PanelButton {
-                            id: actBtn
-                            required property var modelData
-
-                            width: actText.implicitWidth + 16
-                            height: 20
-                            accessibleName: actBtn.modelData.text
-                            borderColor: Theme.surface1
-                            onClicked: actBtn.modelData.invoke()
+                            id: gearBtn
+                            visible: entry.settingsAction !== null
+                            width: 16
+                            height: parent.height
+                            anchors.right: closeBtn.left
+                            anchors.rightMargin: 4
+                            accessibleName: "Notification settings"
+                            onClicked: {
+                                Notifs.invoke(entry.modelData, entry.settingsAction)
+                                root.close()
+                            }
                             BarText {
-                                id: actText
                                 anchors.centerIn: parent
-                                text: actBtn.modelData.text
+                                text: "󰒓"
+                                font.pixelSize: Theme.fontSizeSmall
+                                color: gearBtn.hovered || gearBtn.showFocus ? Theme.mauve : Theme.overlay1
+                            }
+                        }
+                        PanelButton {
+                            id: closeBtn
+                            width: 16
+                            height: parent.height
+                            anchors.right: parent.right
+                            accessibleName: "Dismiss notification"
+                            onClicked: root.dismiss(entry.modelData)
+                            BarText {
+                                anchors.centerIn: parent
+                                text: "✕"
+                                font.pixelSize: Theme.fontSizeSmall
+                                color: closeBtn.hovered || closeBtn.showFocus ? Theme.red : Theme.overlay1
+                            }
+                        }
+                    }
+
+                    BarText {
+                        width: parent.width
+                        visible: text !== ""
+                        wrapMode: Text.Wrap
+                        maximumLineCount: row.expanded ? 20 : 2
+                        elide: Text.ElideRight
+                        textFormat: Text.StyledText
+                        color: Theme.subtext0
+                        text: entry.modelData?.body ?? ""
+                    }
+
+                    // "open" runs the default action, which toasts do on click
+                    Row {
+                        visible: row.expanded && (entry.defaultAction !== null || entry.buttons.length > 0)
+                        spacing: 6
+
+                        Repeater {
+                            model: (entry.defaultAction ? [entry.defaultAction] : []).concat(entry.buttons)
+
+                            PanelButton {
+                                id: actBtn
+                                required property var modelData
+
+                                readonly property string label: modelData.identifier === "default"
+                                    ? "open" : modelData.text
+
+                                width: actText.implicitWidth + 16
+                                height: 20
+                                accessibleName: label
+                                borderColor: Theme.surface1
+                                onClicked: {
+                                    Notifs.invoke(entry.modelData, actBtn.modelData)
+                                    if (actBtn.modelData.identifier === "default")
+                                        root.close()
+                                }
+                                BarText {
+                                    id: actText
+                                    anchors.centerIn: parent
+                                    text: actBtn.label
+                                }
                             }
                         }
                     }
