@@ -17,6 +17,7 @@ hyprland
 hyprpaper
 hypridle
 hyprlock
+hyprpolkitagent
 hyprshot
 
 # status bar / launcher / notifications

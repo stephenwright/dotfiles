@@ -7,12 +7,13 @@ mako + most fuzzel dialogs (Aug 2026). Catppuccin Macchiato throughout.
 
 ```
 shell.qml     entry: one Bar per screen + global windows (Launcher,
-              ClipboardPanel, WallpaperPanel, NotificationPopups)
+              ClipboardPanel, WallpaperPanel, NotificationPopups, Osd)
 services/     singletons only — the one dir with a hand-written qmldir.
               Theme, Commands (launcher tree), PanelManager, Notifs
               (notification daemon), Session (actions), Fuzzy (matcher),
               Caffeine (stay-awake state; toggle lives in DisplayPanel,
-              Display glyph tints green while active)
+              Display glyph tints green while active), SysStats /
+              Brightness / Recorder (pollers shared by every bar)
 lib/          shared components: Panel (base for anchored panels), keyboard-aware
               PanelButton/PanelToggle/PanelSlider, BarWidget, BarText, MeterRow,
               NetRow
@@ -29,6 +30,9 @@ Rules of thumb:
 - State + actions shared by ≥2 consumers go in a service singleton; bar
   widgets, panels, the launcher, and IPC keybinds all call the same function.
   One-off exec calls stay inline.
+- Polling lives in a service, never in a bar widget — widgets are
+  instantiated per screen, so a widget-level poller runs once per monitor.
+  Prefer `FileView.reload()` on /proc or sysfs over spawning a shell.
 
 ## How panels work
 
@@ -75,16 +79,28 @@ Launcher and Clipboard keep text-input-driven result navigation.
 ## Notifications
 
 `services/Notifs.qml` hosts the NotificationServer — quickshell IS the
-notification daemon. `NotificationPopups.qml` renders toasts (top-right,
-mako-parity urgency colors/timeouts: low green 4s, normal blue 8s, critical
-red sticky). `NotifyPanel.qml` is the bell panel: live notifications on top,
-plus a collapsed history section of dismissed ones. Closed Notification
-objects are destroyed, so history stores plain-data snapshots (no actions) —
-capped at 100, per-item delete. Arrival times are tracked by notification id
-(shown on live + history rows). The bell shows a red dot for notifications
-arriving during DND (cleared on panel open or DND toggle). DND, history, and
-arrival times survive config reloads via PersistentProperties (as JSON
-strings — see gotchas); live notifications via `keepOnReload`.
+notification daemon.
+
+- Toasts (`NotificationPopups.qml`): top-right, newest on top, max 5
+  (overflow drops the oldest non-critical). Mako-parity timeouts when the
+  app doesn't set one: low green 4s, normal blue 8s, critical red sticky.
+  Hover holds a toast open. Left-click runs the `default` action (opens the
+  sender), right-click dismisses. `default` and `settings` never render as
+  buttons; `settings` (Chrome's site settings) is a gear icon.
+- Panel (`NotifyPanel.qml`): live notifications grouped by `desktopEntry`
+  (fallback `appName`), plus a collapsed history of closed ones (plain-data
+  snapshots, capped at 100). The bell's red dot counts arrivals during DND.
+- Updates: a replaced notification (same id) is updated in place without a
+  new `onNotification`, so Notifs watches summary/body changes and re-toasts.
+  Identical app+summary+body within 5s is dropped as a duplicate.
+- Persistence: DND + history in `Quickshell.statePath("notifications.json")`
+  (survives restarts; hand edits are picked up). Arrival times only need to
+  survive reloads, alongside `keepOnReload` notifications, so they stay in
+  PersistentProperties.
+- Chrome sends web notifications that require interaction (Google Calendar
+  reminders) as critical + timeout 0 to any server not named "Plasma", and
+  orders actions as site buttons, then `default`, then `settings`. Never
+  click-invoke `actions[0]` — for Calendar that's Snooze.
 
 ## IPC surface (hyprland.conf binds)
 
@@ -131,10 +147,21 @@ qs ipc call clipboard toggle         SUPER+SHIFT+V (SUPER+V is togglefloating)
   quickshell retries when the name frees. Symptom: toasts stop appearing.
 - PersistentProperties: a `var` holding a JS object/array warns "JSValue
   can't be reassigned to another engine" on reload and can restore as
-  undefined — persist JSON strings instead (Notifs historyJson/arrivalsJson).
+  undefined — persist JSON strings instead (Notifs arrivalsJson), or use FileView + JsonAdapter.
 - Unit mismatches in UPower: `percentage` is 0–1, `healthPercentage` is 0–100.
-- `Notification` objects are destroyed after close — popup/history delegates
-  must drop refs on `onClosed` (see NotificationPopups).
+- `Notification` objects are destroyed (deleteLater) after close, together
+  with their `NotificationAction` children, while view delegates can still be
+  alive. A binding that reads action properties and feeds a Repeater model
+  re-evaluates mid-destruction and segfaults — gate such bindings on a
+  `closed` flag set in `onClosed` (see NotificationPopups/NotifyPanel).
+- Per-notification signal wiring goes through `Variants` over
+  `trackedNotifications.values`, not `connect()` in `onNotification`, so
+  notifications kept across a reload are wired up again.
+- After a crash, quickshell auto-restarts in-process but cannot re-claim
+  `org.freedesktop.Notifications` (notifications silently go nowhere). Fully
+  restart `qs` after any crash.
+- Child processes (`Process`) are not killed when qs exits. Long-lived ones
+  must tie themselves to the shell's pid (see Caffeine's `tail --pid=$PPID`).
 - Layer-shell keyboard focus must be OnDemand, never Exclusive — Exclusive
   pins focus and HyprlandFocusGrab never clears on outside clicks.
 - Panel's default property alias routes instance children into the content
@@ -152,7 +179,6 @@ qs ipc call clipboard toggle         SUPER+SHIFT+V (SUPER+V is togglefloating)
   UI exists; `stew run` stays regardless.
 - Theme consolidation: Theme.qml as the single Catppuccin source generating
   hypr/colors.conf + fuzzel colors (currently duplicated).
-- NotifyPanel: app grouping.
 - Clipboard picker: image thumbnails (decode to tmpfile), per-item delete
   (`cliphist delete`).
 - Battery: low-battery notification via Notifs when crossing 15%.
