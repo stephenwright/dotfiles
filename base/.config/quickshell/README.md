@@ -13,7 +13,8 @@ services/     singletons only — the one dir with a hand-written qmldir.
               (notification daemon), Session (actions), Fuzzy (matcher),
               Caffeine (stay-awake state; toggle lives in DisplayPanel,
               Display glyph tints green while active), SysStats /
-              Brightness / Recorder (pollers shared by every bar)
+              Brightness / Recorder (pollers shared by every bar), Power
+              (laptop battery + low-battery notifications at 15% / 5%)
 lib/          shared components: Panel (base for anchored panels), keyboard-aware
               PanelButton/PanelToggle/PanelSlider, BarWidget, BarText, MeterRow,
               NetRow
@@ -121,8 +122,14 @@ qs ipc call clipboard toggle         SUPER+SHIFT+V (SUPER+V is togglefloating)
   win). Never slim a stew script when porting a feature here. `stew mux` and
   `stew run` are CLI/keybind-only — not launcher entries.
 - Launcher entries: quickshell alternative → `run:` callback (tagged `qs`);
-  otherwise `cmd:` shell string wrapping stew (tagged `stew`). See
-  `services/Commands.qml` and `Launcher.activate()`.
+  otherwise `cmd:` shell string (tagged `stew` when it wraps stew). Toggles
+  add `state:` to show on/off. See `services/Commands.qml` and
+  `Launcher.activate()`.
+- Launcher modes: `> cmd` runs a shell command (Shift+Enter: in a terminal
+  that stays open), `= expr` evaluates with qalc and Enter copies the
+  result. Apps with `Terminal=true` are wrapped in `Settings.terminal` —
+  `DesktopEntry.execute()` ignores that flag. Apps stay alphabetical; no
+  frecency by choice.
 - Capture UI lives in the Display panel (screenshots via hyprshot, recording
   via `stew capture`); the bar ⏺ appears only while recording, as a stop
   button. Audio/battery widgets are icon-only — exact numbers in their panels.
@@ -160,6 +167,11 @@ qs ipc call clipboard toggle         SUPER+SHIFT+V (SUPER+V is togglefloating)
 - After a crash, quickshell auto-restarts in-process but cannot re-claim
   `org.freedesktop.Notifications` (notifications silently go nowhere). Fully
   restart `qs` after any crash.
+- Quickshell uses private Qt APIs: after a Qt upgrade it logs "built against
+  Qt X but the system has updated to Qt Y" and may crash until the
+  quickshell package is rebuilt for the new Qt.
+- Restart qs from Hyprland (`hyprctl dispatch 'hl.dsp.exec_cmd("qs")'`), not
+  from an arbitrary shell — launched apps inherit qs's environment.
 - Child processes (`Process`) are not killed when qs exits. Long-lived ones
   must tie themselves to the shell's pid (see Caffeine's `tail --pid=$PPID`).
 - Layer-shell keyboard focus must be OnDemand, never Exclusive — Exclusive
@@ -175,12 +187,9 @@ qs ipc call clipboard toggle         SUPER+SHIFT+V (SUPER+V is togglefloating)
 
 - Window switcher panel (replace fuzzel `stew win` flow): Hyprland toplevels
   are already reactive via Quickshell.Hyprland; reuse Fuzzy + Launcher UI.
-- Launcher run-mode (type a command, run it) — keyboard-cheap since the input
-  UI exists; `stew run` stays regardless.
 - Theme consolidation: Theme.qml as the single Catppuccin source generating
   hypr/colors.conf + fuzzel colors (currently duplicated).
 - Clipboard picker: image thumbnails (decode to tmpfile), per-item delete
   (`cliphist delete`).
-- Battery: low-battery notification via Notifs when crossing 15%.
 - Desktop machine cutover still unverified: stale-file cleanup, battery widget
   hidden, cliphist + power-profiles-daemon install.
