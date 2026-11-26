@@ -6,13 +6,14 @@ import Quickshell.Wayland
 import "../lib"
 import "../services"
 
-// cliphist history picker, launcher-style centered window
+// cliphist history picker, launcher-style centered window. Image entries get
+// thumbnails decoded into the cache dir, one batch per open.
 PanelWindow {
     id: root
 
     visible: false
     implicitWidth: 640
-    implicitHeight: 44 + results.length * 30
+    implicitHeight: 44 + list.height
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
@@ -24,6 +25,15 @@ PanelWindow {
     property var entries: []
     property var results: []
     property int selected: 0
+    // thumbnail file names known to exist; filled as the decode script reports them
+    property var thumbsReady: ({})
+
+    readonly property string thumbDir: Quickshell.cachePath("clipboard-thumbs")
+    readonly property int rowHeight: 30
+    readonly property int imageRowHeight: 64
+    readonly property int maxListHeight: 480
+
+    onSelectedChanged: list.positionViewAtIndex(selected, ListView.Contain)
 
     Component.onCompleted: PanelManager.register("clipboard", root)
     Component.onDestruction: PanelManager.unregister("clipboard", root)
@@ -59,28 +69,53 @@ PanelWindow {
                     const tab = line.indexOf("\t")
                     if (tab < 0)
                         continue
+                    const id = line.slice(0, tab)
                     const preview = line.slice(tab + 1)
+                    // e.g. "[[ binary data 47 KiB png 1920x1080 ]]"
+                    const img = preview.match(/^\[\[ binary data (.+?) (\w+) (\d+x\d+) \]\]$/)
                     out.push({
-                        id: line.slice(0, tab),
-                        preview: preview,
-                        isImage: preview.startsWith("[[ binary data")
+                        id: id,
+                        preview: img ? img[2] + " " + img[3] + " · " + img[1] : preview,
+                        thumb: img ? id + "." + img[2] : ""
                     })
                 }
                 root.entries = out
                 root.refilter()
+                const thumbs = out.filter(e => e.thumb).map(e => e.thumb)
+                thumbProc.command = ["sh", "-c", root.thumbScript, "sh", root.thumbDir].concat(thumbs)
+                thumbProc.running = true
             }
+        }
+    }
+
+    // decode missing thumbnails (newest first, reporting each as it's ready),
+    // then drop ones whose entry left the history
+    readonly property string thumbScript: [
+        'dir=$1; shift; mkdir -p "$dir"',
+        'for f; do',
+        '  [ -s "$dir/$f" ] || { cliphist decode "${f%.*}" > "$dir/$f.tmp" && mv "$dir/$f.tmp" "$dir/$f"; }',
+        '  [ -s "$dir/$f" ] && echo "$f"',
+        'done',
+        'for p in "$dir"/*; do',
+        '  case " $* " in *" ${p##*/} "*) ;; *) rm -f "$p" ;; esac',
+        'done',
+    ].join("\n")
+
+    Process {
+        id: thumbProc
+        stdout: SplitParser {
+            onRead: f => root.thumbsReady = Object.assign({}, root.thumbsReady, { [f]: true })
         }
     }
 
     function refilter() {
         const q = input.text.trim()
-        results = (!q ? entries
+        results = !q ? entries
             : entries
                 .map(e => ({ e, s: Fuzzy.score(q, e.preview) }))
                 .filter(x => x.s >= 0)
                 .sort((a, b) => b.s - a.s)
                 .map(x => x.e)
-        ).slice(0, 15)
         selected = 0
     }
 
@@ -144,8 +179,12 @@ PanelWindow {
                     Keys.onPressed: event => {
                         if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
                             root.selected = Math.min(root.selected + 1, root.results.length - 1)
-                        } else if (event.key === Qt.Key_Up) {
+                        } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab) {
                             root.selected = Math.max(root.selected - 1, 0)
+                        } else if (event.key === Qt.Key_PageDown) {
+                            root.selected = Math.min(root.selected + 10, root.results.length - 1)
+                        } else if (event.key === Qt.Key_PageUp) {
+                            root.selected = Math.max(root.selected - 10, 0)
                         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                             root.activate()
                         } else {
@@ -170,16 +209,21 @@ PanelWindow {
                 }
             }
 
-            Repeater {
+            ListView {
+                id: list
+                width: parent.width
+                height: Math.min(contentHeight, root.maxListHeight)
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
                 model: root.results
 
-                MouseArea {
+                delegate: MouseArea {
                     id: row
                     required property var modelData
                     required property int index
 
-                    width: parent.width
-                    height: 30
+                    width: ListView.view.width
+                    height: modelData.thumb ? root.imageRowHeight : root.rowHeight
                     hoverEnabled: true
 
                     onClicked: {
@@ -198,15 +242,34 @@ PanelWindow {
                         height: parent.height
                         color: row.index === root.selected ? Theme.mauve : "transparent"
                     }
+                    Rectangle {
+                        id: thumbFrame
+                        visible: row.modelData.thumb !== ""
+                        x: 12
+                        width: visible ? 96 : 0
+                        height: parent.height - 8
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: Theme.mantle
+
+                        Image {
+                            anchors.fill: parent
+                            anchors.margins: 1
+                            asynchronous: true
+                            fillMode: Image.PreserveAspectFit
+                            sourceSize: Qt.size(192, 112)
+                            source: root.thumbsReady[row.modelData.thumb]
+                                ? "file://" + root.thumbDir + "/" + row.modelData.thumb
+                                : ""
+                        }
+                    }
                     BarText {
                         anchors.verticalCenter: parent.verticalCenter
-                        anchors.left: parent.left
+                        anchors.left: thumbFrame.visible ? thumbFrame.right : parent.left
                         anchors.leftMargin: 12
                         anchors.right: parent.right
                         anchors.rightMargin: 12
                         elide: Text.ElideRight
-                        text: (row.modelData.isImage ? "󰋩 image · " : "")
-                            + row.modelData.preview.trim()
+                        text: (row.modelData.thumb ? "󰋩 " : "") + row.modelData.preview.trim()
                         font.pixelSize: Theme.fontSize
                         color: row.index === root.selected ? Theme.mauve : Theme.text
                     }

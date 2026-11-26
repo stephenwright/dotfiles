@@ -125,6 +125,10 @@ qs ipc call clipboard toggle         SUPER+SHIFT+V (SUPER+V is togglefloating)
   otherwise `cmd:` shell string (tagged `stew` when it wraps stew). Toggles
   add `state:` to show on/off. See `services/Commands.qml` and
   `Launcher.activate()`.
+- Clipboard thumbnails: each open decodes missing images into
+  `Quickshell.cachePath("clipboard-thumbs")` (newest first, each shown as it
+  lands) and prunes files for entries gone from cliphist. The first open
+  after a big history takes a few seconds to fill in.
 - Launcher modes: `> cmd` runs a shell command (Shift+Enter: in a terminal
   that stays open), `= expr` evaluates with qalc and Enter copies the
   result. Apps with `Terminal=true` are wrapped in `Settings.terminal` —
@@ -189,7 +193,6 @@ qs ipc call clipboard toggle         SUPER+SHIFT+V (SUPER+V is togglefloating)
   are already reactive via Quickshell.Hyprland; reuse Fuzzy + Launcher UI.
 - Theme consolidation: Theme.qml as the single Catppuccin source generating
   hypr/colors.conf + fuzzel colors (currently duplicated).
-- Clipboard picker: image thumbnails (decode to tmpfile), per-item delete
-  (`cliphist delete`).
+- Clipboard picker: per-item delete (`cliphist delete`).
 - Desktop machine cutover still unverified: stale-file cleanup, battery widget
   hidden, cliphist + power-profiles-daemon install.
