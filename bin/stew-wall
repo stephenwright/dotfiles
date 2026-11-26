@@ -30,11 +30,11 @@ apply_wallpaper() {
     # Preload and set current wallpaper
     hyprctl hyprpaper wallpaper ", $wallpaper" 2>/dev/null
 
-    # Update config for persistence
+    # Update config for persistence; ~ keeps it identical to the dotfiles copy
     {
         echo "wallpaper {"
         echo "    monitor ="
-        echo "    path = $wallpaper"
+        echo "    path = ${wallpaper/#$HOME/\~}"
         echo "}"
     } > "$HYPRPAPER_CONFIG"
 }
