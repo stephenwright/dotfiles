@@ -11,8 +11,11 @@ PanelWindow {
 
     visible: false
     implicitWidth: 560
-    implicitHeight: 44 + Math.min(results.length, maxRows) * rowHeight
+    // fixed at the tallest size, with the box drawn at content height inside:
+    // resizing the surface makes Hyprland animate it, stretching stale frames
+    implicitHeight: 44 + maxRows * rowHeight
     color: "transparent"
+    mask: Region { item: box }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "launcher"
@@ -207,7 +210,9 @@ PanelWindow {
     }
 
     Rectangle {
-        anchors.fill: parent
+        id: box
+        width: parent.width
+        height: 44 + list.height
         color: Theme.panelBg
         border.color: Theme.mauve
         border.width: 2
@@ -266,7 +271,7 @@ PanelWindow {
                     BarText {
                         visible: !input.text
                         anchors.verticalCenter: parent.verticalCenter
-                        text: root.category ? "search…" : "search everything…   > run   = calc"
+                        text: root.category ? "search…" : "search everything…"
                         color: Theme.overlay0
                         font.pixelSize: Theme.fontSizeLarge
                     }

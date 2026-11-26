@@ -13,8 +13,10 @@ PanelWindow {
 
     visible: false
     implicitWidth: 640
-    implicitHeight: 44 + list.height
+    // fixed height, box sized inside; see Launcher
+    implicitHeight: 44 + maxListHeight
     color: "transparent"
+    mask: Region { item: box }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "clipboard"
@@ -150,7 +152,9 @@ PanelWindow {
     }
 
     Rectangle {
-        anchors.fill: parent
+        id: box
+        width: parent.width
+        height: 44 + list.height
         color: Theme.base
         border.color: Theme.mauve
         border.width: 2
