@@ -7,7 +7,6 @@ Row {
     id: root
 
     required property var screen
-    readonly property var monitor: Hyprland.monitorFor(screen)
 
     height: parent.height
     spacing: 4
@@ -19,8 +18,10 @@ Row {
             id: ws
             required property var modelData
 
-            // hide special workspaces (negative ids) and other monitors' workspaces
-            visible: modelData.id > 0 && modelData.monitor === root.monitor
+            // hide special workspaces (negative ids) and other monitors' workspaces.
+            // Match by name: after a monitor reconnects, monitorFor(screen) can
+            // hand back a different object than the workspaces point at.
+            visible: modelData.id > 0 && modelData.monitor?.name === root.screen?.name
             width: visible ? Theme.fontSizeSmall + (Theme.widgetPadding * 2) : 0
             height: parent ? parent.height : 0
             hoverEnabled: true
