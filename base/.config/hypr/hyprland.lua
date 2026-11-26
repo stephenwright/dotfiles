@@ -21,7 +21,9 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("hyprpaper")
     hl.exec_cmd("hypridle")
     hl.exec_cmd("qs")
-    hl.exec_cmd("wl-paste --type text --watch cliphist store")
+    -- store only plain text: `--type text` alone takes the first text-ish type,
+    -- which for a browser "Copy image" is UTF-16 text/x-moz-url (url + title)
+    hl.exec_cmd([[wl-paste --type text --watch sh -c 't=$(wl-paste --list-types | grep -m1 -xE "text/plain;charset=utf-8|text/plain|UTF8_STRING") && wl-paste -n --type "$t" | cliphist store']])
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
 
     hl.exec_cmd("[workspace 1 silent] " .. terminal)
