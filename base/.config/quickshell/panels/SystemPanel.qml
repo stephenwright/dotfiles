@@ -7,12 +7,23 @@ Panel {
     id: root
 
     panelName: "system"
-    initialFocusItem: monRow
+    initialFocusItem: monBtn
 
-    BarText {
-        text: "System"
-        font.pixelSize: Theme.fontSizeSmall
-        color: Theme.overlay1
+    PanelHeader {
+        icon: "󰍛"
+        title: "System"
+        subtitle: SysStats.cpu + "% cpu · " + SysStats.temp + "°C"
+
+        IconButton {
+            id: monBtn
+            anchors.verticalCenter: parent.verticalCenter
+            glyph: "󰄨"
+            accessibleName: "Open system monitor"
+            onClicked: {
+                root.close()
+                Quickshell.execDetached(Settings.systemMonitor)
+            }
+        }
     }
 
     MeterRow {
@@ -56,24 +67,5 @@ Panel {
         detail: SysStats.temp + "°C"
         frac: SysStats.temp / 100
         barColor: Theme.levelColor(frac, 0.7, 0.8)
-    }
-
-    PanelButton {
-        id: monRow
-        width: parent.width
-        height: 26
-        accessibleName: "Open btop"
-        onClicked: {
-            root.close()
-            Quickshell.execDetached(Settings.systemMonitor)
-        }
-
-        BarText {
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.left: parent.left
-            anchors.leftMargin: 4
-            text: " Open btop"
-            color: monRow.hovered || monRow.showFocus ? Theme.mauve : Theme.text
-        }
     }
 }

@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
+import Quickshell.Widgets
 import "../lib"
 import "../services"
 
@@ -13,12 +14,12 @@ PanelWindow {
     implicitWidth: 560
     // fixed at the tallest size, with the box drawn at content height inside:
     // resizing the surface makes Hyprland animate it, stretching stale frames
-    implicitHeight: 44 + maxRows * rowHeight
+    implicitHeight: 40 + Theme.panelBorder * 2 + maxRows * rowHeight + footerHeight
     color: "transparent"
     mask: Region { item: box }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "launcher"
+    WlrLayershell.namespace: "qs-launcher"
     // OnDemand, not Exclusive: an exclusive-keyboard layer pins focus to itself,
     // which keeps HyprlandFocusGrab from ever clearing on outside clicks
     WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
@@ -29,6 +30,7 @@ PanelWindow {
 
     readonly property int maxRows: 12
     readonly property int rowHeight: 30
+    readonly property int footerHeight: 26
 
     // "> cmd" runs a shell command, "= expr" evaluates with qalc. Functions,
     // not bindings: refilter runs from onTextChanged, possibly before a
@@ -87,7 +89,7 @@ PanelWindow {
     }
 
     function categoryList() {
-        return [{ name: "Apps", children: appEntries() }].concat(Commands.categories)
+        return [{ name: "Apps", icon: "󰀻", children: appEntries() }].concat(Commands.categories)
     }
 
     // flatten to searchable leaves; stew entries get a category-prefixed label
@@ -106,7 +108,7 @@ PanelWindow {
         const q = input.text.trim()
         const arg = modeArg()
         if (mode() === "run") {
-            results = arg ? [{ label: arg, shell: arg }] : []
+            results = arg ? [{ label: arg, shell: arg, icon: "󰆍" }] : []
         } else if (mode() === "calc") {
             results = []
             if (arg)
@@ -140,7 +142,7 @@ PanelWindow {
             onStreamFinished: {
                 const r = this.text.trim()
                 if (root.mode() === "calc" && r)
-                    root.results = [{ label: r, copy: r }]
+                    root.results = [{ label: r, copy: r, icon: "󰃬" }]
             }
         }
     }
@@ -180,7 +182,7 @@ PanelWindow {
             return "›"
         if (e.state)
             return e.state() ? "on" : "off"
-        return e.entry ? (e.entry.runInTerminal ? "term" : "app")
+        return e.entry ? (e.entry.runInTerminal ? "term" : "")
             : e.shell ? "run ⇧term"
             : e.copy ? "copy"
             : e.run ? "qs"
@@ -212,14 +214,14 @@ PanelWindow {
     Rectangle {
         id: box
         width: parent.width
-        height: 44 + list.height
+        height: 40 + Theme.panelBorder * 2 + list.height + root.footerHeight
         color: Theme.panelBg
         border.color: Theme.mauve
-        border.width: 2
+        border.width: Theme.panelBorder
 
         Column {
             anchors.fill: parent
-            anchors.margins: 2
+            anchors.margins: Theme.panelBorder
 
             Item {
                 width: parent.width
@@ -317,10 +319,32 @@ PanelWindow {
                         height: parent.height
                         color: row.index === root.selected ? Theme.mauve : "transparent"
                     }
+                    // apps show their desktop icon, commands (and apps whose icon
+                    // isn't in the theme) a dim glyph
+                    readonly property string appIcon: modelData.entry
+                        ? Quickshell.iconPath(modelData.entry.icon, true) : ""
+
+                    IconImage {
+                        visible: row.appIcon !== ""
+                        anchors.verticalCenter: parent.verticalCenter
+                        x: 12
+                        implicitSize: 20
+                        source: row.appIcon
+                    }
+                    BarText {
+                        visible: row.appIcon === ""
+                        anchors.verticalCenter: parent.verticalCenter
+                        x: 12
+                        width: 20
+                        horizontalAlignment: Text.AlignHCenter
+                        text: row.modelData.entry ? "󰣆" : (row.modelData.icon ?? "")
+                        font.pixelSize: Theme.fontSizeLarge
+                        color: row.index === root.selected ? Theme.mauve : Theme.overlay1
+                    }
                     BarText {
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.left: parent.left
-                        anchors.leftMargin: 12
+                        anchors.leftMargin: 42
                         text: row.modelData.label ?? row.modelData.name
                         font.pixelSize: Theme.fontSizeLarge
                         color: row.index === root.selected ? Theme.mauve : Theme.text
@@ -335,6 +359,20 @@ PanelWindow {
                             : row.modelData.state && row.modelData.state() ? Theme.green : Theme.overlay0
                     }
                 }
+            }
+
+            KeyHints {
+                height: root.footerHeight
+                inset: 12
+                hints: root.mode() === "run"
+                    ? [{ key: "enter", action: "run" }, { key: "shift+enter", action: "in terminal" },
+                       { key: "esc", action: "close" }]
+                    : root.mode() === "calc"
+                    ? [{ key: "enter", action: "copy" }, { key: "esc", action: "close" }]
+                    : [{ key: "enter", action: "open" }]
+                        .concat(root.category ? [{ key: "⌫", action: "back" }] : [])
+                        .concat([{ key: ">", action: "run" }, { key: "=", action: "calc" },
+                                 { key: "esc", action: "close" }])
             }
         }
     }

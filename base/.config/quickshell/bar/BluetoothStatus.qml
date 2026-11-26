@@ -19,9 +19,9 @@ BarWidget {
 
     visible: adapter !== null
     text: !adapter || !adapter.enabled ? "󰂲" : connectedCount > 0 ? "󰂱" : "󰂯"
-    fg: !adapter || !adapter.enabled ? Theme.overlay0
-        : connectedCount > 0 ? Theme.blue
-        : Theme.text
+    fg: !adapter || !adapter.enabled ? Theme.overlay0 : Theme.text
+
+    active: panel.visible
 
     onClicked: panel.toggle()
 

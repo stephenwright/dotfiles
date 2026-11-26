@@ -79,6 +79,14 @@ Singleton {
 
     function focusHorizontal(item, direction) {
         keyboardMode = true
+        // within a row, step to the neighbour; never jump to another row
+        const row = rowOf(item)
+        if (row.length > 1) {
+            const sorted = row.slice().sort((a, b) =>
+                a.mapToGlobal(0, 0).x - b.mapToGlobal(0, 0).x)
+            sorted[sorted.indexOf(item) + direction]?.forceActiveFocus(Qt.TabFocusReason)
+            return
+        }
         const origin = item.mapToGlobal(item.width / 2, item.height / 2)
         let candidate = item.nextItemInFocusChain(true)
         let best = null
@@ -105,11 +113,28 @@ Singleton {
             best.forceActiveFocus(Qt.TabFocusReason)
     }
 
+    // Buttons with horizontalNavigation that share a parent form one row:
+    // Up/Down skip the rest of the row and enter the next one at its active
+    // choice (current / selected), or its first button.
+    function rowOf(item) {
+        if (!item?.horizontalNavigation || !item.parent)
+            return []
+        return item.parent.children.filter(c => c.horizontalNavigation && c.visible
+            && c.enabled && c.activeFocusOnTab)
+    }
+
     function focusNext(item, forward) {
         keyboardMode = true
-        const next = item.nextItemInFocusChain(forward)
-        if (next && next !== item)
-            next.forceActiveFocus(Qt.TabFocusReason)
+        const row = rowOf(item)
+        let next = item.nextItemInFocusChain(forward)
+        for (let i = 0; next && next !== item && row.includes(next) && i < 512; i++)
+            next = next.nextItemInFocusChain(forward)
+        if (!next || next === item)
+            return
+        const target = rowOf(next)
+        if (target.length)
+            next = target.find(c => c.current === true || c.selected === true) ?? target[0]
+        next.forceActiveFocus(Qt.TabFocusReason)
     }
 
     function dismissed(panel) {

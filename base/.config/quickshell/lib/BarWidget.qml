@@ -8,6 +8,8 @@ MouseArea {
     property color fg: Theme.text
     property color hoverBg: Qt.rgba(1, 1, 1, 0.08)
     property bool blink: false
+    // its panel is open: styled like the active workspace
+    property bool active: false
     property int fontSize: 20
 
     signal scrolledUp()
@@ -20,13 +22,21 @@ MouseArea {
 
     Rectangle {
         anchors.fill: parent
-        color: root.containsMouse ? root.hoverBg : "transparent"
+        color: root.active ? Qt.alpha(Theme.mauve, 0.2)
+             : root.containsMouse ? root.hoverBg
+             : "transparent"
+    }
+    Rectangle {
+        visible: root.active
+        anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+        height: 3
+        color: Theme.mauve
     }
 
     BarText {
         id: label
         anchors.centerIn: parent
-        color: root.fg
+        color: root.active ? Theme.mauve : root.fg
         font.pixelSize: parent.fontSize
     }
 

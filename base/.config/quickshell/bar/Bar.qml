@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 import "../lib"
 import "../services"
 
@@ -16,6 +17,7 @@ PanelWindow {
     }
     implicitHeight: Theme.barHeight
     color: Theme.barBg
+    WlrLayershell.namespace: "qs-bar"
 
     Component.onCompleted: PanelManager.registerBar(root)
     Component.onDestruction: PanelManager.unregisterBar(root)

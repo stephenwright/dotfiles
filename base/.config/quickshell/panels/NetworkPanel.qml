@@ -9,7 +9,6 @@ Panel {
     id: root
 
     panelName: "network"
-    panelWidth: 320
     contentSpacing: 8
     initialFocusItem: wifiSwitch
 
@@ -19,6 +18,8 @@ Panel {
     // before authenticating, so a rejected password must be forgotten again
     property bool attemptWasNew: false
     property string errorMsg: ""
+    // collapsed by default; stays as the user left it for the session
+    property bool otherOpen: false
 
     readonly property var wifiDev: Networking.devices.values.find(d => d.type === DeviceType.Wifi) ?? null
     readonly property var wiredDev: Networking.devices.values.find(d => d.type === DeviceType.Wired) ?? null
@@ -164,78 +165,46 @@ Panel {
         }
     }
 
-    Item {
-        width: parent.width
-        height: 18
+    PanelHeader {
+        icon: "󰖩"
+        title: "Wi-Fi"
+        subtitle: !Networking.wifiEnabled ? "off"
+            : root.wifiNet ? root.wifiNet.name
+            : root.curDev === root.wiredDev && root.wiredDev ? "wired"
+            : "disconnected"
 
-        BarText {
-            anchors.verticalCenter: parent.verticalCenter
-            text: "Wi-Fi"
-            font.pixelSize: Theme.fontSizeSmall
-            color: Theme.overlay1
-        }
-
-        PanelToggle {
+        PanelSwitch {
             id: wifiSwitch
-            width: 34
-            height: 16
             anchors.verticalCenter: parent.verticalCenter
-            anchors.right: gearBtn.left
-            anchors.rightMargin: 10
             checked: Networking.wifiEnabled
             accessibleName: "Wi-Fi"
             onToggled: Networking.wifiEnabled = !Networking.wifiEnabled
-
-            Rectangle {
-                anchors.fill: parent
-                color: Networking.wifiEnabled ? Qt.alpha(Theme.mauve, 0.4) : Theme.surface1
-
-                Rectangle {
-                    width: 12
-                    height: 12
-                    anchors.verticalCenter: parent.verticalCenter
-                    x: Networking.wifiEnabled ? parent.width - width - 2 : 2
-                    color: Networking.wifiEnabled ? Theme.mauve : Theme.overlay0
-                }
-            }
         }
 
-        PanelButton {
-            id: gearBtn
-            width: 20
-            height: parent.height
-            anchors.right: parent.right
+        IconButton {
+            anchors.verticalCenter: parent.verticalCenter
+            glyph: "󰒓"
             accessibleName: "Network settings"
             onClicked: {
                 root.close()
                 Quickshell.execDetached(["nm-connection-editor"])
             }
-            BarText {
-                anchors.centerIn: parent
-                text: ""
-                font.pixelSize: Theme.fontSize
-                color: gearBtn.hovered || gearBtn.showFocus ? Theme.mauve : Theme.overlay1
-            }
         }
     }
 
-    // current connection: ip + device (wired falls back to device name)
+    // current connection: ip + device
     BarText {
         visible: root.curDev != null
         width: parent.width
         elide: Text.ElideRight
-        text: (root.curDev === root.wiredDev ? "󰈀 " : "󰩟 ")
-            + (root.ipAddr || "…")
-            + (root.curDev ? " on " + root.curDev.name : "")
-        font.pixelSize: Theme.fontSizeSmall
-        color: Theme.subtext0
-    }
-
-    BarText {
-        visible: root.knownNets.length > 0
-        text: "Known"
+        text: (root.ipAddr || "…") + (root.curDev ? "  ·  " + root.curDev.name : "")
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.overlay1
+    }
+
+    SectionLabel {
+        visible: root.knownNets.length > 0
+        text: "Known"
     }
 
     Repeater {
@@ -244,23 +213,24 @@ Panel {
         NetRow { panel: root }
     }
 
-    BarText {
+    PanelButton {
+        id: otherToggle
         visible: root.otherNets.length > 0
-        text: "Other"
-        font.pixelSize: Theme.fontSizeSmall
-        color: Theme.overlay1
+        width: parent.width
+        height: 16
+        accessibleName: (root.otherOpen ? "Hide" : "Show") + " other networks"
+        onClicked: root.otherOpen = !root.otherOpen
+
+        SectionLabel {
+            anchors.fill: parent
+            text: (root.otherOpen ? "▾ " : "▸ ") + "Other (" + root.otherNets.length + ")"
+        }
     }
 
     Repeater {
-        model: root.otherNets
+        model: root.otherOpen ? root.otherNets : []
 
         NetRow { panel: root }
-    }
-
-    BarText {
-        visible: !Networking.wifiEnabled
-        text: "Wi-Fi is off"
-        color: Theme.overlay0
     }
 
     Column {
@@ -304,5 +274,10 @@ Panel {
         text: root.errorMsg
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.red
+    }
+
+    KeyHints {
+        hints: [{ key: "enter", action: "connect" }, { key: "x", action: "forget" },
+                { key: "esc", action: "close" }]
     }
 }

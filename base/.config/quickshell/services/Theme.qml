@@ -18,6 +18,9 @@ Singleton {
     readonly property int widgetPadding: 10   // clickable area: bar widgets + workspace pills
     readonly property int panelMargin: 5      // gap between panel and bar/screen edges
     readonly property int panelPadding: 10    // panel content inset
+    readonly property int panelBorder: 1      // windows keep 2px so focus stands out
+    readonly property int panelWidth: 380
+    readonly property int panelWidthWide: 480
 
     // colours
 
@@ -49,8 +52,9 @@ Singleton {
     readonly property color mantle: "#1e2030"
     readonly property color crust: "#181926"
 
-    readonly property color barBg: Qt.rgba(0, 0, 0, 0.7)
-    readonly property color panelBg: base
+    // translucent surfaces are blurred by the `qs-` layer rule in hyprland.lua
+    readonly property color barBg: Qt.alpha(mantle, 0.82)
+    readonly property color panelBg: Qt.alpha(base, 0.95)
 
     function levelColor(frac, warn, crit) {
         return frac >= crit ? red : frac >= warn ? yellow : mauve

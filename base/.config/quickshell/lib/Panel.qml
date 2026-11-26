@@ -12,7 +12,7 @@ PanelWindow {
 
     property Item anchorItem
     property string panelName: "panel"
-    property int panelWidth: 340
+    property int panelWidth: Theme.panelWidth
     property int contentSpacing: 10
     property Item initialFocusItem: null
     default property alias contentData: content.data
@@ -26,7 +26,7 @@ PanelWindow {
 
     visible: false
     implicitWidth: panelWidth
-    implicitHeight: content.implicitHeight + Theme.panelPadding * 2 + 4
+    implicitHeight: content.implicitHeight + Theme.panelPadding * 2 + Theme.panelBorder * 2
     color: "transparent"
 
     anchors {
@@ -36,7 +36,7 @@ PanelWindow {
     margins.top: Theme.panelMargin
     exclusiveZone: 0
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: root.panelName
+    WlrLayershell.namespace: "qs-" + root.panelName
     // OnDemand, not Exclusive: an exclusive-keyboard layer pins focus to itself,
     // which keeps HyprlandFocusGrab from ever clearing on outside clicks
     WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
@@ -55,8 +55,12 @@ PanelWindow {
     function managedOpen() {
         const win = anchorItem.QsWindow.window
         screen = win.screen
-        const r = anchorItem.mapToItem(null, 0, 0)
-        const x = r.x + anchorItem.width / 2 - implicitWidth / 2
+        // panels from the right-hand widgets line up on the screen edge;
+        // the rest centre under their widget
+        const center = anchorItem.mapToItem(null, anchorItem.width / 2, 0).x
+        const x = center > screen.width * 2 / 3
+            ? screen.width - implicitWidth
+            : center - implicitWidth / 2
         margins.left = Math.round(Math.max(Theme.panelMargin,
             Math.min(x, screen.width - implicitWidth - Theme.panelMargin)))
         opening()
@@ -94,7 +98,7 @@ PanelWindow {
         anchors.fill: parent
         color: Theme.panelBg
         border.color: Theme.mauve
-        border.width: 2
+        border.width: Theme.panelBorder
 
         FocusScope {
             id: scope

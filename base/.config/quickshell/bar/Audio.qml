@@ -18,7 +18,7 @@ BarWidget {
     }
 
     text: muted ? "󰝟" : volPct >= 67 ? "󰕾" : volPct >= 34 ? "󰖀" : "󰕿"
-    fg: muted ? Theme.overlay0 : Theme.text
+    fg: muted ? Theme.red : Theme.text
 
     function setVol(v) {
         if (sink?.audio)
@@ -27,6 +27,8 @@ BarWidget {
 
     onScrolledUp: setVol(vol + 0.05)
     onScrolledDown: setVol(vol - 0.05)
+    active: panel.visible
+
     onClicked: event => {
         if (event.button === Qt.RightButton) {
             PanelManager.close()

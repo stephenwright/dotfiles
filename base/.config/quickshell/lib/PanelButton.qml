@@ -12,6 +12,9 @@ Item {
     property color borderColor: "transparent"
     property color focusBorderColor: Theme.mauve
     property bool horizontalNavigation: false
+    // Up/Down go to keyPressed instead of the focus chain, for lists whose
+    // item order differs from what's on screen
+    property bool customNavigation: false
     readonly property bool hovered: pointer.containsMouse
     readonly property bool pressed: pointer.pressed
     readonly property bool showFocus: activeFocus && PanelManager.keyboardMode
@@ -64,7 +67,7 @@ Item {
 
     Keys.onPressed: event => {
         PanelManager.keyboardMode = true
-        if (event.key === Qt.Key_Up || event.key === Qt.Key_Down) {
+        if (!root.customNavigation && (event.key === Qt.Key_Up || event.key === Qt.Key_Down)) {
             PanelManager.focusNext(root, event.key === Qt.Key_Down)
             event.accepted = true
             return

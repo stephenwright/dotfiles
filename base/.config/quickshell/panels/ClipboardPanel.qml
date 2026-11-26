@@ -14,12 +14,12 @@ PanelWindow {
     visible: false
     implicitWidth: 640
     // fixed height, box sized inside; see Launcher
-    implicitHeight: 44 + maxListHeight
+    implicitHeight: 40 + Theme.panelBorder * 2 + maxListHeight
     color: "transparent"
     mask: Region { item: box }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "clipboard"
+    WlrLayershell.namespace: "qs-clipboard"
     // OnDemand, not Exclusive: an exclusive-keyboard layer pins focus to itself,
     // which keeps HyprlandFocusGrab from ever clearing on outside clicks
     WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
@@ -154,14 +154,14 @@ PanelWindow {
     Rectangle {
         id: box
         width: parent.width
-        height: 44 + list.height
-        color: Theme.base
+        height: 40 + Theme.panelBorder * 2 + list.height
+        color: Theme.panelBg
         border.color: Theme.mauve
-        border.width: 2
+        border.width: Theme.panelBorder
 
         Column {
             anchors.fill: parent
-            anchors.margins: 2
+            anchors.margins: Theme.panelBorder
 
             Item {
                 width: parent.width

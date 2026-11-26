@@ -26,7 +26,7 @@ PanelWindow {
     color: "transparent"
     exclusiveZone: 0
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "osd"
+    WlrLayershell.namespace: "qs-osd"
     anchors.bottom: true
     margins.bottom: 120
     implicitWidth: 280

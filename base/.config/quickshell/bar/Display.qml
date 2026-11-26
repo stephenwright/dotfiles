@@ -11,6 +11,8 @@ BarWidget {
 
     onScrolledUp: Brightness.set("5%+")
     onScrolledDown: Brightness.set("5%-")
+    active: panel.visible
+
     onClicked: event => {
         if (event.button === Qt.RightButton) {
             PanelManager.close()

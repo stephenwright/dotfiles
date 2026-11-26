@@ -20,38 +20,52 @@ Item {
         anchors.left: parent.left
         anchors.right: forgetBtn.visible ? forgetBtn.left : parent.right
         height: parent.height
-        enabled: !netRow.modelData.connected && !netRow.modelData.stateChanging
         accessibleName: "Connect to " + netRow.modelData.name
+        backgroundColor: netRow.modelData.connected ? Theme.surface0 : "transparent"
         onClicked: netRow.panel.activate(netRow.modelData)
+        onKeyPressed: event => {
+            if ((event.key === Qt.Key_X || event.key === Qt.Key_Delete) && netRow.modelData.known) {
+                netRow.panel.forget(netRow.modelData)
+                event.accepted = true
+            }
+        }
+
+        // connected network is marked like SelectRow
+        Rectangle {
+            visible: netRow.modelData.connected
+            width: 2
+            height: parent.height
+            color: Theme.mauve
+        }
 
         BarText {
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
-            anchors.leftMargin: 4
+            anchors.leftMargin: 8
             anchors.right: status.left
             anchors.rightMargin: 4
             elide: Text.ElideRight
             text: netRow.panel.sigIcon(netRow.modelData) + " " + netRow.modelData.name
                 + (netRow.panel.secured(netRow.modelData) ? " 󰌾" : "")
-            color: netRow.modelData.connected ? Theme.green : Theme.text
+            color: connectBtn.showFocus ? Theme.mauve : Theme.text
         }
         BarText {
             id: status
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
-            anchors.rightMargin: 4
+            anchors.rightMargin: 8
             font.pixelSize: Theme.fontSizeHint
-            text: netRow.modelData.connected ? "✓"
-                : netRow.modelData.stateChanging ? "…" : ""
-            color: netRow.modelData.connected ? Theme.green
-                 : netRow.modelData.stateChanging ? Theme.yellow
-                 : Theme.overlay0
+            text: netRow.modelData.stateChanging ? "connecting…"
+                : netRow.modelData.connected ? "connected" : ""
+            color: Theme.overlay0
         }
     }
 
     PanelButton {
         id: forgetBtn
         visible: netRow.modelData.known
+        // the row is the keyboard stop; x forgets from there
+        activeFocusOnTab: false
         width: 22
         height: parent.height
         anchors.right: parent.right

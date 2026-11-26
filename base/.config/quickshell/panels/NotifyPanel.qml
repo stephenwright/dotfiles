@@ -7,7 +7,7 @@ Panel {
     id: root
 
     panelName: "notifications"
-    panelWidth: 420
+    panelWidth: Theme.panelWidthWide
     contentSpacing: 8
     initialFocusItem: dndSwitch
 
@@ -27,6 +27,21 @@ Panel {
         focusHeader()
     }
 
+    // Cards are the keyboard stops, in on-screen order. The focus chain can't be
+    // used: it follows delegate creation, so a notification that arrives while
+    // the panel exists sits at the top but comes last in the chain.
+    function focusCard(i) {
+        if (i < 0) {
+            dndSwitch.forceActiveFocus(Qt.TabFocusReason)
+        } else if (i >= list.count) {
+            if (histToggle.visible)
+                histToggle.forceActiveFocus(Qt.TabFocusReason)
+        } else {
+            list.positionViewAtIndex(i, ListView.Contain)
+            list.itemAtIndex(i)?.card.forceActiveFocus(Qt.TabFocusReason)
+        }
+    }
+
     function dismissAll() {
         Notifs.dismissAll()
         focusHeader()
@@ -37,64 +52,51 @@ Panel {
         focusHeader()
     }
 
-    Item {
-        width: parent.width
-        height: 18
+    onKeyPressed: event => {
+        if (event.key === Qt.Key_D)
+            Notifs.toggleDnd()
+        else if (event.key === Qt.Key_C)
+            root.dismissAll()
+        else
+            return
+        event.accepted = true
+    }
+
+    PanelHeader {
+        icon: Notifs.dnd ? "󰂛" : "󰂚"
+        iconColor: Notifs.dnd ? Theme.red : Theme.text
+        title: "Notifications"
+        subtitle: Notifs.tracked.values.length > 0 ? String(Notifs.tracked.values.length) : ""
 
         BarText {
             anchors.verticalCenter: parent.verticalCenter
-            text: "Notifications"
+            text: "dnd"
             font.pixelSize: Theme.fontSizeSmall
-            color: Theme.overlay1
+            color: Notifs.dnd ? Theme.red : Theme.overlay1
         }
 
-        // DND toggle
-        PanelToggle {
+        PanelSwitch {
             id: dndSwitch
-            width: 34
-            height: 16
             anchors.verticalCenter: parent.verticalCenter
-            anchors.right: clearBtn.left
-            anchors.rightMargin: 12
             checked: Notifs.dnd
+            onColor: Theme.red
             accessibleName: "Do not disturb"
+            customNavigation: true
             onToggled: Notifs.toggleDnd()
-
-            Rectangle {
-                anchors.fill: parent
-                color: Notifs.dnd ? Qt.alpha(Theme.red, 0.4) : Theme.surface1
-
-                Rectangle {
-                    width: 12
-                    height: 12
-                    anchors.verticalCenter: parent.verticalCenter
-                    x: Notifs.dnd ? parent.width - width - 2 : 2
-                    color: Notifs.dnd ? Theme.red : Theme.overlay0
+            onKeyPressed: event => {
+                if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
+                    root.focusCard(0)
+                    event.accepted = true
                 }
             }
-            BarText {
-                anchors.right: parent.left
-                anchors.rightMargin: 6
-                anchors.verticalCenter: parent.verticalCenter
-                text: "dnd"
-                font.pixelSize: Theme.fontSizeSmall
-                color: Notifs.dnd ? Theme.red : Theme.overlay1
-            }
         }
 
-        PanelButton {
-            id: clearBtn
-            width: 20
-            height: parent.height
-            anchors.right: parent.right
+        IconButton {
+            anchors.verticalCenter: parent.verticalCenter
+            activeFocusOnTab: false
+            glyph: "󰎟"
             accessibleName: "Dismiss all notifications"
             onClicked: root.dismissAll()
-            BarText {
-                anchors.centerIn: parent
-                text: "󰎟"
-                font.pixelSize: Theme.fontSize
-                color: clearBtn.hovered || clearBtn.showFocus ? Theme.mauve : Theme.overlay1
-            }
         }
     }
 
@@ -129,6 +131,7 @@ Panel {
             readonly property var settingsAction: closed ? null : Notifs.findAction(modelData, "settings")
             readonly property var defaultAction: closed ? null : Notifs.findAction(modelData, "default")
             readonly property var buttons: closed ? [] : Notifs.buttonActions(modelData)
+            property alias card: row
 
             width: ListView.view.width
             spacing: 4
@@ -158,6 +161,7 @@ Panel {
                 }
                 PanelButton {
                     id: groupClear
+                    activeFocusOnTab: false
                     visible: entry.siblings.length > 1
                     width: 20
                     height: parent.height
@@ -184,17 +188,31 @@ Panel {
                 width: parent.width
                 height: inner.implicitHeight + 12
                 accessibleName: (entry.modelData?.appName ?? "") + " " + (entry.modelData?.summary ?? "")
-                borderColor: Qt.alpha(Notifs.urgencyColor(entry.modelData?.urgency), 0.5)
+                backgroundColor: Qt.alpha(Theme.mantle, 0.8)
+                customNavigation: true
                 onClicked: expanded = !expanded
+
+                Rectangle {
+                    width: 2
+                    height: parent.height
+                    color: Notifs.urgencyColor(entry.modelData?.urgency)
+                }
                 onActiveFocusChanged: {
                     if (activeFocus)
                         list.positionViewAtIndex(entry.index, ListView.Contain)
                 }
                 onKeyPressed: event => {
-                    if (event.key === Qt.Key_Delete || event.key === Qt.Key_X) {
+                    if (event.key === Qt.Key_Delete || event.key === Qt.Key_X)
                         root.dismiss(entry.modelData)
-                        event.accepted = true
-                    }
+                    else if (event.key === Qt.Key_Tab && row.expanded && actions.count > 0)
+                        actions.itemAt(0).forceActiveFocus(Qt.TabFocusReason)
+                    else if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab)
+                        root.focusCard(entry.index - 1)
+                    else if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab)
+                        root.focusCard(entry.index + 1)
+                    else
+                        return
+                    event.accepted = true
                 }
 
                 Column {
@@ -203,6 +221,7 @@ Panel {
                     anchors.right: parent.right
                     anchors.top: parent.top
                     anchors.margins: 6
+                    anchors.leftMargin: 10
                     spacing: 2
 
                     Item {
@@ -228,6 +247,7 @@ Panel {
                         }
                         PanelButton {
                             id: gearBtn
+                            activeFocusOnTab: false
                             visible: entry.settingsAction !== null
                             width: 16
                             height: parent.height
@@ -247,6 +267,7 @@ Panel {
                         }
                         PanelButton {
                             id: closeBtn
+                            activeFocusOnTab: false
                             width: 16
                             height: parent.height
                             anchors.right: parent.right
@@ -278,11 +299,13 @@ Panel {
                         spacing: 6
 
                         Repeater {
+                            id: actions
                             model: (entry.defaultAction ? [entry.defaultAction] : []).concat(entry.buttons)
 
                             PanelButton {
                                 id: actBtn
                                 required property var modelData
+                                required property int index
 
                                 readonly property string label: modelData.identifier === "default"
                                     ? "open" : modelData.text
@@ -291,6 +314,21 @@ Panel {
                                 height: 20
                                 accessibleName: label
                                 borderColor: Theme.surface1
+                                horizontalNavigation: true
+                                customNavigation: true
+                                // Tab walks the actions, then on to the next card
+                                onKeyPressed: event => {
+                                    const last = actBtn.index === actions.count - 1
+                                    if (event.key === Qt.Key_Up
+                                            || (event.key === Qt.Key_Backtab && actBtn.index === 0))
+                                        row.forceActiveFocus(Qt.TabFocusReason)
+                                    else if (event.key === Qt.Key_Down
+                                            || (event.key === Qt.Key_Tab && last))
+                                        root.focusCard(entry.index + 1)
+                                    else
+                                        return
+                                    event.accepted = true
+                                }
                                 onClicked: {
                                     Notifs.invoke(entry.modelData, actBtn.modelData)
                                     if (actBtn.modelData.identifier === "default")
@@ -322,7 +360,17 @@ Panel {
             height: parent.height
             accessibleName: root.historyOpen ? "Collapse notification history"
                 : "Expand notification history"
+            customNavigation: true
             onClicked: root.historyOpen = !root.historyOpen
+            onKeyPressed: event => {
+                if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab)
+                    root.focusCard(list.count - 1)
+                else if (event.key === Qt.Key_Down)
+                    PanelManager.focusNext(histToggle, true)
+                else
+                    return
+                event.accepted = true
+            }
 
             BarText {
                 id: histLabel
@@ -373,8 +421,14 @@ Panel {
             width: ListView.view.width
             height: histInner.implicitHeight + 12
             accessibleName: histRow.modelData.appName + " " + histRow.modelData.summary
-            borderColor: Qt.alpha(Notifs.urgencyColor(histRow.modelData.urgency), 0.2)
+            backgroundColor: Qt.alpha(Theme.mantle, 0.5)
             onClicked: expanded = !expanded
+
+            Rectangle {
+                width: 2
+                height: parent.height
+                color: Qt.alpha(Notifs.urgencyColor(histRow.modelData.urgency), 0.4)
+            }
             onActiveFocusChanged: {
                 if (activeFocus)
                     histList.positionViewAtIndex(index, ListView.Contain)
@@ -392,6 +446,7 @@ Panel {
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.margins: 6
+                anchors.leftMargin: 10
                 spacing: 2
 
                 Item {
@@ -419,6 +474,7 @@ Panel {
                     }
                     PanelButton {
                         id: histDelBtn
+                        activeFocusOnTab: false
                         width: 16
                         height: parent.height
                         anchors.right: parent.right
@@ -445,5 +501,15 @@ Panel {
                 }
             }
         }
+    }
+
+    KeyHints {
+        hints: [
+            { key: "enter", action: "expand" },
+            { key: "x", action: "dismiss" },
+            { key: "d", action: "dnd" },
+            { key: "c", action: "clear all" },
+            { key: "esc", action: "close" },
+        ]
     }
 }

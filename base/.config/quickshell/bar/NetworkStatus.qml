@@ -23,9 +23,9 @@ BarWidget {
         : wiredDev && wiredDev.connected ? "󰈀"
         : !Networking.wifiEnabled ? "󰤮"
         : "󰤭"
-    fg: wifiNet ? Theme.green
-        : wiredDev && wiredDev.connected ? Theme.sapphire
-        : Theme.red
+    fg: wifiNet || (wiredDev && wiredDev.connected) ? Theme.text : Theme.red
+
+    active: panel.visible
 
     onClicked: event => {
         if (event.button === Qt.RightButton) {

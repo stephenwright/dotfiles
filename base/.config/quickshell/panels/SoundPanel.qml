@@ -8,7 +8,6 @@ Panel {
     id: root
 
     panelName: "sound"
-    panelWidth: 320
     contentSpacing: 8
     initialFocusItem: muteBtn.enabled ? muteBtn : mixerBtn
 
@@ -46,33 +45,25 @@ Panel {
         }
     }
 
-    // output
-    Item {
-        width: parent.width
-        height: 16
+    PanelHeader {
+        icon: "󰕾"
+        title: "Sound"
+        subtitle: root.sink ? root.label(root.sink) : ""
 
-        BarText {
-            text: "Output"
-            font.pixelSize: Theme.fontSizeSmall
-            color: Theme.overlay1
-        }
-        PanelButton {
+        IconButton {
             id: mixerBtn
-            width: 20
-            height: parent.height
-            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            glyph: "󰘮"
             accessibleName: "Open volume mixer"
             onClicked: {
                 root.close()
                 Quickshell.execDetached(["pavucontrol"])
             }
-            BarText {
-                anchors.centerIn: parent
-                text: ""
-                font.pixelSize: Theme.fontSize
-                color: mixerBtn.hovered || mixerBtn.showFocus ? Theme.mauve : Theme.overlay1
-            }
         }
+    }
+
+    SectionLabel {
+        text: "Output"
     }
 
     Row {
@@ -117,46 +108,23 @@ Panel {
         }
     }
 
-    // devices
-    BarText {
-        visible: root.sinks.length > 1
-        text: "Devices"
-        font.pixelSize: Theme.fontSizeSmall
-        color: Theme.overlay1
-    }
-
     Repeater {
         model: root.sinks.length > 1 ? root.sinks : []
 
-        PanelButton {
-            id: devRow
+        SelectRow {
             required property var modelData
 
-            readonly property bool isDefault: modelData === root.sink
-
-            width: parent.width
-            height: 24
-            accessibleName: "Use output " + root.label(modelData)
+            selected: modelData === root.sink
+            label: root.label(modelData)
+            accessibleName: "Use output " + label
             onClicked: Pipewire.preferredDefaultAudioSink = modelData
             Component.onDestruction: root.recoverFocus(activeFocus)
-            BarText {
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.left: parent.left
-                anchors.leftMargin: 4
-                width: parent.width - 8
-                elide: Text.ElideRight
-                text: (devRow.isDefault ? "● " : "○ ") + root.label(devRow.modelData)
-                color: devRow.isDefault ? Theme.mauve : Theme.text
-            }
         }
     }
 
-    // input
-    BarText {
+    SectionLabel {
         visible: root.sources.length > 0
         text: "Input"
-        font.pixelSize: Theme.fontSizeSmall
-        color: Theme.overlay1
     }
 
     Row {
@@ -237,35 +205,20 @@ Panel {
     Repeater {
         model: root.sources.length > 1 ? root.sources : []
 
-        PanelButton {
-            id: srcRow
+        SelectRow {
             required property var modelData
 
-            readonly property bool isDefault: modelData === root.source
-
-            width: parent.width
-            height: 24
-            accessibleName: "Use input " + root.label(modelData)
+            selected: modelData === root.source
+            label: root.label(modelData)
+            accessibleName: "Use input " + label
             onClicked: Pipewire.preferredDefaultAudioSource = modelData
             Component.onDestruction: root.recoverFocus(activeFocus)
-            BarText {
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.left: parent.left
-                anchors.leftMargin: 4
-                width: parent.width - 8
-                elide: Text.ElideRight
-                text: (srcRow.isDefault ? "● " : "○ ") + root.label(srcRow.modelData)
-                color: srcRow.isDefault ? Theme.mauve : Theme.text
-            }
         }
     }
 
-    // per-app streams
-    BarText {
+    SectionLabel {
         visible: root.streams.length > 0
         text: "Apps"
-        font.pixelSize: Theme.fontSizeSmall
-        color: Theme.overlay1
     }
 
     Repeater {

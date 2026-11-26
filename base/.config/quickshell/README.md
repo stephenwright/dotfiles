@@ -14,10 +14,13 @@ services/     singletons only — the one dir with a hand-written qmldir.
               Caffeine (stay-awake state; toggle lives in DisplayPanel,
               Display glyph tints green while active), SysStats /
               Brightness / Recorder (pollers shared by every bar), Power
-              (laptop battery + low-battery notifications at 15% / 5%)
+              (laptop battery + low-battery notifications at 15% / 5%),
+              Monitors (`hyprctl monitors all` + runtime layout changes for the
+              Display panel; the Identify overlay listens to it)
 lib/          shared components: Panel (base for anchored panels), keyboard-aware
-              PanelButton/PanelToggle/PanelSlider, BarWidget, BarText, MeterRow,
-              NetRow
+              PanelButton/PanelToggle/PanelSlider, panel building blocks
+              (PanelHeader, SectionLabel, ToggleRow, PanelSwitch, SelectRow,
+              SegmentButton, IconButton), BarWidget, BarText, MeterRow, NetRow
 bar/          Bar.qml + one file per widget
 panels/       anchored panels (derive from lib/Panel) + managed centered panels
               (Launcher, Clipboard, Wallpaper) + passive NotificationPopups
@@ -67,12 +70,30 @@ is the sole lifecycle authority and keeps one managed panel open globally.
 - Passive `PanelWindow` surfaces such as notification toasts, tooltips, and
   indicators stay outside PanelManager and do not take keyboard focus.
 
+Look: every anchored panel starts with a `PanelHeader` (icon, bold title, dim
+subtitle, trailing switch or icon buttons; buttons that open an external app go
+there). Sections use `SectionLabel`, on/off settings `ToggleRow` (or
+`PanelSwitch` in a header), "which one is active" lists `SelectRow` (the
+launcher's surface0 + mauve bar), short fixed choices `SegmentButton`. Panels are
+`Theme.panelWidth` (wide: `panelWidthWide`); those opened from the right third of
+the bar align to the screen edge, the rest centre under their widget. Surfaces
+are translucent with a 1px border (`Theme.panelBorder`) and use layer namespaces
+prefixed `qs-`, which the `shell-blur` layer rule in hyprland.lua blurs.
+
 Interactive panel controls use `PanelButton`, `PanelToggle`, and `PanelSlider`.
 Focus styling appears only after keyboard input and clears on pointer use.
-Down follows Tab and Up follows Shift+Tab. Each option is a focus stop; grid
-options also use Left/Right. Enter or Space activates the focused item.
+Down follows Tab and Up follows Shift+Tab, except that buttons with
+`horizontalNavigation` sharing a parent form one row: Left/Right move along it,
+Up/Down skip to the next row and land on its active choice (`current` /
+`selected`) or first button. Tab still visits every button. Enter or Space
+activates the focused item.
 Buttons and toggles activate with Enter or Space. Sliders use Left/Right,
-Page Up and Page Down, Home, and End. Keep focus behavior local to controls—do
+Page Up and Page Down, Home, and End. List rows are single stops: small trailing buttons (✕, trash, gear,
+group clear) are mouse-only (`activeFocusOnTab: false`) and have a key on the
+row instead (`x`/Delete dismisses or forgets). Where the focus chain doesn't
+match on-screen order (ListView delegates created as items arrive), rows set
+`customNavigation` and move focus themselves (see NotifyPanel `focusCard`).
+Keep focus behavior local to controls—do
 not add a keyboard-only panel subtype or panel-wide index management.
 Wallpaper uses GridView's native arrow navigation and Enter/Space activation;
 Launcher and Clipboard keep text-input-driven result navigation.
@@ -91,6 +112,8 @@ notification daemon.
 - Panel (`NotifyPanel.qml`): live notifications grouped by `desktopEntry`
   (fallback `appName`), plus a collapsed history of closed ones (plain-data
   snapshots, capped at 100). The bell's red dot counts arrivals during DND.
+  Keys: `d` toggles DND, `c` dismisses all, `x`/Delete dismisses the focused
+  one (hints in the `KeyHints` footer). Toasts hide while the panel is open.
 - Updates: a replaced notification (same id) is updated in place without a
   new `onNotification`, so Notifs watches summary/body changes and re-toasts.
   Identical app+summary+body within 5s is dropped as a duplicate.
@@ -129,17 +152,37 @@ qs ipc call clipboard toggle         SUPER+SHIFT+V (SUPER+V is togglefloating)
   `Quickshell.cachePath("clipboard-thumbs")` (newest first, each shown as it
   lands) and prunes files for entries gone from cliphist. The first open
   after a big history takes a few seconds to fill in.
+- Launcher rows have an icon column: apps their desktop icon
+  (`Quickshell.iconPath(icon, true)`; Qt has no icon theme set, so a few miss
+  and get a glyph), categories and commands a dim Nerd Font glyph from the
+  `icon` field in `services/Commands.qml`. A key-hint footer follows the mode.
 - Launcher modes: `> cmd` runs a shell command (Shift+Enter: in a terminal
   that stays open), `= expr` evaluates with qalc and Enter copies the
   result. Apps with `Terminal=true` are wrapped in `Settings.terminal` —
   `DesktopEntry.execute()` ignores that flag. Apps stay alphabetical; no
   frecency by choice.
+- Bar status icons are `Theme.text`; colour only signals state (red: muted,
+  offline, DND, critical; yellow: warning; green: stay-awake). A widget whose
+  panel is open sets `BarWidget.active` and looks like the active workspace.
+- Display panel monitor controls (mode, scale, placement, enable) are runtime
+  `hl.monitor` calls. Mode/position/scale are also saved (per output, merged)
+  to `statePath("monitors.json")` and generated into
+  `~/.local/state/hypr/monitors.lua`, which hyprland.lua `dofile`s after its
+  own monitor rules. On/off and mirroring are never saved (a saved-off screen
+  could leave an undocked boot dark); `stew profile` stays runtime-only.
+  The lowest-id enabled output is the anchor, pinned at 0,0 (an `auto`
+  position in the config would be recomputed after every move), and the
+  others are re-placed beside it, so size changes leave no gaps. All outputs
+  go in one `hyprctl eval`. Every call states mode/position/scale/disabled/
+  mirror (merge semantics), and the last enabled output can't be turned off.
 - Capture UI lives in the Display panel (screenshots via hyprshot, recording
   via `stew capture`); the bar ⏺ appears only while recording, as a stop
   button. Audio/battery widgets are icon-only — exact numbers in their panels.
 - Bluetooth uses the native Quickshell.Bluetooth module (connect/disconnect
-  paired devices, adapter power). Pairing stays in bluetoothctl. Widget hides
-  when no adapter (bluetooth.service must be running to see one).
+  paired devices, adapter power, forget). "Nearby" scans only while expanded
+  and pairs + trusts + connects. Quickshell registers no BlueZ agent, so devices
+  that need a PIN/passkey still pair in bluetoothctl. Widget hides when no
+  adapter (bluetooth.service must be running to see one).
 - Battery uses UPower with an explicit device filter
   (`ready && isPresent && isLaptopBattery`) — **not** `UPower.displayDevice`,
   which can resolve to peripheral batteries (Logitech hidpp mouse). The widget

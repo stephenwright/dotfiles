@@ -10,6 +10,8 @@ BarWidget {
     fg: Theme.red
     hoverBg: Qt.alpha(Theme.red, 0.2)
 
+    active: panel.visible
+
     onClicked: panel.toggle()
 
     SessionPanel {

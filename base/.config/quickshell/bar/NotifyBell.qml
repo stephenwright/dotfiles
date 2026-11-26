@@ -9,7 +9,9 @@ BarWidget {
     readonly property int count: Notifs.tracked.values.length
 
     text: Notifs.dnd ? "" : count > 0 ? "󱅫" : ""
-    fg: Notifs.dnd ? Theme.red : Theme.sapphire
+    fg: Notifs.dnd ? Theme.red : Theme.text
+
+    active: panel.visible
 
     onClicked: event => {
         if (event.button === Qt.RightButton) {

@@ -11,6 +11,8 @@ BarWidget {
     fg: SysStats.critical ? Theme.red : SysStats.warning ? Theme.yellow : Theme.text
     blink: SysStats.critical
 
+    active: panel.visible
+
     onClicked: event => {
         if (event.button === Qt.RightButton) {
             PanelManager.close()

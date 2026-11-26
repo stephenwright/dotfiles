@@ -16,7 +16,7 @@ PanelWindow {
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "wallpaper"
+    WlrLayershell.namespace: "qs-wallpaper"
     WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     property var walls: []
@@ -96,9 +96,9 @@ PanelWindow {
 
     Rectangle {
         anchors.fill: parent
-        color: Theme.base
+        color: Theme.panelBg
         border.color: Theme.mauve
-        border.width: 2
+        border.width: Theme.panelBorder
 
         GridView {
             id: grid

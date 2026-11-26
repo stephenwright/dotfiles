@@ -19,4 +19,5 @@ ShellRoot {
     WallpaperPanel {}
     NotificationPopups {}
     Osd {}
+    Identify {}
 }

@@ -25,6 +25,8 @@ BarWidget {
         : Theme.text
     blink: !plugged && pct <= 15
 
+    active: panel.visible
+
     onClicked: panel.toggle()
 
     BatteryPanel {

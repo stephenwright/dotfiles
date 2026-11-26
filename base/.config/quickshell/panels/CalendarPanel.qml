@@ -7,7 +7,7 @@ Panel {
 
     panelName: "calendar"
     panelWidth: 280
-    implicitHeight: 248
+    implicitHeight: 272
     contentSpacing: 6
 
     property int year: 2000
@@ -177,5 +177,9 @@ Panel {
                 }
             }
         }
+    }
+
+    KeyHints {
+        hints: [{ key: "←→", action: "month" }, { key: "esc", action: "close" }]
     }
 }

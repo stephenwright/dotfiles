@@ -10,11 +10,12 @@ import "../services"
 PanelWindow {
     id: root
 
-    visible: Notifs.popups.length > 0
+    // the notification panel lists the same ones, and would show them through
+    visible: Notifs.popups.length > 0 && PanelManager.current?.panelName !== "notifications"
     color: "transparent"
     exclusiveZone: 0
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "notifications"
+    WlrLayershell.namespace: "qs-toasts"
 
     anchors {
         top: true

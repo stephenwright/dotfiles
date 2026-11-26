@@ -45,14 +45,14 @@ Panel {
         }
     }
 
-    BarText {
-        text: "Battery"
-        font.pixelSize: Theme.fontSizeSmall
-        color: Theme.overlay1
+    PanelHeader {
+        icon: "󰁹"
+        title: "Battery"
+        subtitle: root.stateLine
     }
 
     MeterRow {
-        label: root.stateLine
+        label: "Charge"
         detail: root.pct + "%"
         frac: root.pct / 100
         barColor: !root.bat ? Theme.mauve
@@ -99,10 +99,8 @@ Panel {
         }
     }
 
-    BarText {
+    SectionLabel {
         text: "Profile"
-        font.pixelSize: Theme.fontSizeSmall
-        color: Theme.overlay1
     }
 
     Row {
@@ -112,26 +110,15 @@ Panel {
             id: profiles
             model: root.profileOpts
 
-            PanelButton {
-                id: profBtn
+            SegmentButton {
                 required property var modelData
-
-                readonly property bool current: PowerProfiles.profile === modelData.value
 
                 width: (root.contentWidth - 6 * (root.profileOpts.length - 1))
                     / root.profileOpts.length
-                height: 26
+                current: PowerProfiles.profile === modelData.value
+                label: modelData.label
                 accessibleName: "Power profile " + modelData.label
-                horizontalNavigation: true
-                backgroundColor: current ? Qt.alpha(Theme.mauve, 0.25) : "transparent"
-                borderColor: current ? Theme.mauve : Theme.surface1
                 onClicked: PowerProfiles.profile = modelData.value
-
-                BarText {
-                    anchors.centerIn: parent
-                    text: profBtn.modelData.label
-                    color: profBtn.current || profBtn.showFocus ? Theme.mauve : Theme.text
-                }
             }
         }
     }
