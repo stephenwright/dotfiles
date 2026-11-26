@@ -13,6 +13,15 @@ hl.monitor({ output = "DP-3", mode = "preferred", position = "auto-center-right"
 hl.monitor({ output = "HDMI-A-1", mode = "preferred", position = "auto", scale = 1 })
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
 
+-- Layout saved from the shell's display settings (mode, position, scale);
+-- merges over the rules above
+local savedMonitors = os.getenv("HOME") .. "/.local/state/hypr/monitors.lua"
+local savedFile = io.open(savedMonitors, "r")
+if savedFile then
+    savedFile:close()
+    dofile(savedMonitors)
+end
+
 -------------------
 ---- AUTOSTART ----
 -------------------
@@ -246,6 +255,15 @@ hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = tr
 ----------------------
 ---- WINDOW RULES ----
 ----------------------
+
+-- Blur translucent shell surfaces; ignore_alpha leaves their transparent
+-- margins (e.g. fixed-size windows drawn smaller) unblurred
+hl.layer_rule({
+    name         = "shell-blur",
+    match        = { namespace = "^qs-" },
+    blur         = true,
+    ignore_alpha = 0.5,
+})
 
 -- Ignore maximize requests from apps
 hl.window_rule({
